@@ -9,8 +9,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.khaledx5.dominoscore.audio.AudioFocus
+import io.github.khaledx5.dominoscore.audio.DataStoreMusicSettingsStore
 import io.github.khaledx5.dominoscore.audio.MediaPlayerFactory
 import io.github.khaledx5.dominoscore.audio.MusicPlayerFactory
+import io.github.khaledx5.dominoscore.audio.MusicSettingsStore
 import io.github.khaledx5.dominoscore.audio.SystemAudioFocus
 
 @Module
@@ -22,6 +24,9 @@ interface AudioModule {
 
     @Binds
     fun bindAudioFocus(implementation: SystemAudioFocus): AudioFocus
+
+    @Binds
+    fun bindMusicSettingsStore(implementation: DataStoreMusicSettingsStore): MusicSettingsStore
 
     companion object {
         @Provides

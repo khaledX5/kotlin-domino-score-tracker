@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -40,9 +42,11 @@ fun SettingsSheet(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val language by viewModel.language.collectAsStateWithLifecycle()
+    val music by viewModel.music.collectAsStateWithLifecycle()
     ModalBottomSheet(onDismissRequest = onDismiss, modifier = modifier) {
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xxl),
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
@@ -53,6 +57,12 @@ fun SettingsSheet(
                 fontWeight = FontWeight.SemiBold,
             )
             LanguageOptions(selected = language, onSelect = viewModel::selectLanguage)
+            MusicOptions(
+                settings = music,
+                onGameplayMusicChange = viewModel::setGameplayMusicEnabled,
+                onWinnerMusicChange = viewModel::setWinnerMusicEnabled,
+                onVolumeChange = viewModel::setMusicVolume,
+            )
         }
     }
 }

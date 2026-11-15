@@ -22,6 +22,12 @@
     <string name="settings_title">Settings</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System</string>
+    <string name="settings_music">Music</string>
+    <string name="settings_gameplay_music">Gameplay music</string>
+    <string name="settings_gameplay_music_hint">Plays during a game when you tap the music button</string>
+    <string name="settings_winner_music">Winner music</string>
+    <string name="settings_winner_music_hint">Plays after you confirm the winner</string>
+    <string name="settings_volume">Music volume</string>
     <!-- Shown in their own language and script, whatever the app language is. -->
     <string name="language_name_english" translatable="false">English</string>
     <string name="language_name_arabic" translatable="false">العربية</string>
