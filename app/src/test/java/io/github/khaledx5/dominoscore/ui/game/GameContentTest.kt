@@ -1,11 +1,15 @@
 package io.github.khaledx5.dominoscore.ui.game
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import org.junit.Assert.assertEquals
@@ -31,7 +35,7 @@ class GameContentTest {
         composeRule.setContent {
             DominoTheme {
                 GameContent(game, MusicButtonUi(visible = true, playing = false), onBack = {
-                }, onToggleMusic = {}, onAdd = {}, onPenalty = {})
+                }, onToggleMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
             }
         }
 
@@ -53,6 +57,8 @@ class GameContentTest {
                     onToggleMusic = { toggles++ },
                     onAdd = {},
                     onPenalty = {},
+                    onEditTarget = {},
+                    onPrimaryAction = {},
                 )
             }
         }
@@ -67,10 +73,44 @@ class GameContentTest {
         composeRule.setContent {
             DominoTheme {
                 GameContent(game, MusicButtonUi(visible = false, playing = false), onBack = {
-                }, onToggleMusic = {}, onAdd = {}, onPenalty = {})
+                }, onToggleMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
             }
         }
 
         composeRule.onNodeWithContentDescription("Play music").assertDoesNotExist()
+    }
+
+    @Test
+    fun theMainButtonEndsTheRoundUntilSomeoneQualifies() {
+        var taps = 0
+        var current by mutableStateOf(game)
+        composeRule.setContent {
+            DominoTheme {
+                GameContent(
+                    game = current,
+                    music = MusicButtonUi(visible = false, playing = false),
+                    onBack = {},
+                    onToggleMusic = {},
+                    onAdd = {},
+                    onPenalty = {},
+                    onEditTarget = {},
+                    onPrimaryAction = { taps++ },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("End round").performClick()
+        assertEquals(1, taps)
+
+        val omar = players.first().copy(score = 160, qualified = true)
+        current = game.copy(
+            players = listOf(omar, players.last()),
+            standings = listOf(omar, players.last()),
+            primaryAction = PrimaryAction.END_GAME,
+        )
+
+        composeRule.onNodeWithText("End game").assertIsDisplayed()
+        composeRule.onNodeWithText("End round").assertDoesNotExist()
+        composeRule.onNodeWithText("Omar reached the target").assertIsDisplayed()
     }
 }

@@ -1,5 +1,10 @@
 package io.github.khaledx5.dominoscore.ui.game
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -76,8 +83,18 @@ fun GameScreen(
                 onToggleMusic = viewModel::toggleMusic,
                 onAdd = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.ADD) },
                 onPenalty = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.PENALTY) },
+                onEditTarget = { viewModel.openTargetEdit(current.game.target) },
+                onPrimaryAction = { viewModel.onPrimaryAction(current.game.primaryAction) },
                 modifier = modifier,
             )
+            current.targetEdit?.let { edit ->
+                TargetEditDialog(
+                    edit = edit,
+                    onTextChange = viewModel::updateTargetText,
+                    onConfirm = viewModel::confirmTargetChange,
+                    onDismiss = viewModel::dismissTargetEdit,
+                )
+            }
             current.scoreEntry?.let { entry ->
                 ScoreEntrySheet(
                     entry = entry,
@@ -100,6 +117,8 @@ fun GameContent(
     onToggleMusic: () -> Unit,
     onAdd: (StandingUi) -> Unit,
     onPenalty: (StandingUi) -> Unit,
+    onEditTarget: () -> Unit,
+    onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -117,11 +136,14 @@ fun GameContent(
                     }
                 },
                 actions = {
-                    TargetChip(target = game.target)
+                    TargetChip(target = game.target, onClick = onEditTarget)
                     if (music.visible) MusicButton(playing = music.playing, onClick = onToggleMusic)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
+        },
+        bottomBar = {
+            PrimaryActionButton(action = game.primaryAction, onClick = onPrimaryAction)
         },
     ) { innerPadding ->
         LazyColumn(
@@ -131,6 +153,15 @@ fun GameContent(
             contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
+            item(key = "qualified") {
+                AnimatedVisibility(
+                    visible = game.qualifiedNames.isNotEmpty(),
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) {
+                    QualifiedBanner(names = game.qualifiedNames)
+                }
+            }
             items(game.players, key = { it.playerId }) { player ->
                 PlayerCard(player = player) {
                     ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
@@ -144,8 +175,14 @@ fun GameContent(
 }
 
 @Composable
-private fun TargetChip(target: Int, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier, shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surface) {
+private fun TargetChip(target: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.target_dialog_title)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { contentDescription = description },
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
             verticalAlignment = Alignment.CenterVertically,
@@ -225,6 +262,8 @@ private fun GameContentPreview() {
             onToggleMusic = {},
             onAdd = {},
             onPenalty = {},
+            onEditTarget = {},
+            onPrimaryAction = {},
         )
     }
 }

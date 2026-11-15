@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.game
 import androidx.compose.runtime.Immutable
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
+import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
 
@@ -12,7 +13,12 @@ sealed interface GameUiState {
     /** The game ended or was replaced: the screen closes itself. */
     data object NoActiveGame : GameUiState
 
-    data class Playing(val game: GameUi, val music: MusicButtonUi, val scoreEntry: ScoreEntryUi? = null) : GameUiState
+    data class Playing(
+        val game: GameUi,
+        val music: MusicButtonUi,
+        val scoreEntry: ScoreEntryUi? = null,
+        val targetEdit: TargetEditUi? = null,
+    ) : GameUiState
 }
 
 /**
@@ -25,7 +31,11 @@ data class GameUi(
     val target: Int,
     val players: List<StandingUi>,
     val standings: List<StandingUi>,
-)
+    val primaryAction: PrimaryAction = PrimaryAction.END_ROUND,
+) {
+    /** Players at or above the target, in ranking order. Empty while nobody qualified. */
+    val qualifiedNames: List<String> get() = standings.filter { it.qualified }.map { it.name }
+}
 
 enum class ScoreEntryError {
     NOT_A_NUMBER,
@@ -51,6 +61,17 @@ data class ScoreEntryUi(
     }
 }
 
+enum class TargetEditError {
+    NOT_A_NUMBER,
+    TOO_LOW,
+    TOO_HIGH,
+    UNCHANGED,
+}
+
+/** The open "change target" dialog. Nothing changes until the table confirms. */
+@Immutable
+data class TargetEditUi(val currentTarget: Int, val text: String, val error: TargetEditError? = null)
+
 /** The music button is hidden when gameplay music is switched off in the settings. */
 @Immutable
 data class MusicButtonUi(val visible: Boolean, val playing: Boolean)
@@ -62,5 +83,6 @@ internal fun GameSnapshot.toGameUi(): GameUi {
         target = game.target.value,
         players = standings.sortedBy { standing -> game.players.indexOfFirst { it.id.value == standing.playerId } },
         standings = standings,
+        primaryAction = primaryAction,
     )
 }

@@ -3,7 +3,10 @@ package io.github.khaledx5.dominoscore.ui.game
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
+import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
+import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
@@ -35,7 +38,13 @@ class GameViewModelTest {
     private val startGame = StartGameUseCase(games, testClock)
     private val recordScore = RecordScoreUseCase(games, testClock)
 
-    private fun viewModel() = GameViewModel(ObserveActiveGameUseCase(games), recordScore, music)
+    private fun viewModel() = GameViewModel(
+        ObserveActiveGameUseCase(games),
+        recordScore,
+        ChangeTargetUseCase(games, testClock),
+        EndRoundUseCase(games, testClock),
+        music,
+    )
 
     @Test
     fun keepsCardsInSeatOrderAndTheRankingInScoreOrder() = runTest {
@@ -154,6 +163,115 @@ class GameViewModelTest {
 
             assertEquals(null, expectMostRecentItem().entry())
             assertEquals(0, games.operations.size)
+        }
+    }
+
+    private fun GameUiState.game() = (this as GameUiState.Playing).game
+
+    private fun GameUiState.targetEdit() = (this as GameUiState.Playing).targetEdit
+
+    @Test
+    fun aConfirmedTargetChangeIsSavedAndClosesTheDialog() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openTargetEdit(100)
+            assertEquals("100", awaitItem().targetEdit()?.text)
+
+            viewModel.updateTargetText("250")
+            viewModel.confirmTargetChange()
+
+            val after = expectMostRecentItem()
+            assertEquals(null, after.targetEdit())
+            assertEquals(250, after.game().target)
+        }
+    }
+
+    @Test
+    fun cancellingTheTargetDialogChangesNothing() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openTargetEdit(100)
+            viewModel.updateTargetText("40")
+            viewModel.dismissTargetEdit()
+
+            assertEquals(100, expectMostRecentItem().game().target)
+        }
+    }
+
+    @Test
+    fun theSameTargetOrZeroStayInTheDialogWithAnError() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openTargetEdit(100)
+            viewModel.confirmTargetChange()
+            assertEquals(TargetEditError.UNCHANGED, expectMostRecentItem().targetEdit()?.error)
+
+            viewModel.updateTargetText("0")
+            viewModel.confirmTargetChange()
+            assertEquals(TargetEditError.TOO_LOW, expectMostRecentItem().targetEdit()?.error)
+        }
+    }
+
+    @Test
+    fun loweringTheTargetQualifiesPlayersForTheBanner() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        recordScore(games.activeGame().players.first().id, ScoreOperationType.ADD, 60)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            assertEquals(emptyList<String>(), expectMostRecentItem().game().qualifiedNames)
+
+            viewModel.openTargetEdit(100)
+            viewModel.updateTargetText("50")
+            viewModel.confirmTargetChange()
+
+            assertEquals(listOf("Omar"), expectMostRecentItem().game().qualifiedNames)
+        }
+    }
+
+    @Test
+    fun endingTheRoundKeepsScoresAndStartsTheNextRound() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        recordScore(games.activeGame().players.first().id, ScoreOperationType.ADD, 40)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            val before = expectMostRecentItem().game()
+            assertEquals(1, before.roundNumber)
+            assertEquals(PrimaryAction.END_ROUND, before.primaryAction)
+
+            viewModel.onPrimaryAction(PrimaryAction.END_ROUND)
+
+            val after = expectMostRecentItem().game()
+            assertEquals(2, after.roundNumber)
+            assertEquals(40, after.players.first().score)
+        }
+    }
+
+    @Test
+    fun theMainButtonTurnsIntoEndGameOnceSomeoneQualifies() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            assertEquals(PrimaryAction.END_ROUND, expectMostRecentItem().game().primaryAction)
+
+            recordScore(games.activeGame().players.first().id, ScoreOperationType.ADD, 100)
+            assertEquals(PrimaryAction.END_GAME, expectMostRecentItem().game().primaryAction)
+
+            // A stale End round tap after someone qualified is refused: the round stays open.
+            viewModel.onPrimaryAction(PrimaryAction.END_ROUND)
+            expectNoEvents()
+            assertEquals(1, games.activeGame().currentRound?.number)
         }
     }
 }

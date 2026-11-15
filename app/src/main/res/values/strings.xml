@@ -23,6 +23,22 @@
     <string name="game_music_play">Play music</string>
     <string name="game_music_pause">Pause music</string>
     <string name="game_live_ranking">Live ranking</string>
+    <plurals name="game_qualified_title">
+        <item quantity="one">%1$s reached the target</item>
+        <item quantity="other">%1$s reached the target</item>
+    </plurals>
+    <string name="game_qualified_body">Confirm the winner, or raise the target to keep playing.</string>
+    <string name="target_dialog_title">Change target</string>
+    <string name="target_dialog_body">Everyone is checked against the new target right away.</string>
+    <string name="target_dialog_label">New target</string>
+    <string name="target_dialog_confirm">Change</string>
+    <plurals name="points_unit">
+        <item quantity="one">pt</item>
+        <item quantity="other">pts</item>
+    </plurals>
+    <string name="error_target_unchanged">That is already the target</string>
+    <string name="game_end_round">End round</string>
+    <string name="game_end_game">End game</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>
