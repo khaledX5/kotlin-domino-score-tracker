@@ -32,18 +32,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.components.AnimatedScore
+import io.github.khaledx5.dominoscore.ui.components.BucketDrop
+import io.github.khaledx5.dominoscore.ui.components.CrownEntrance
 import io.github.khaledx5.dominoscore.ui.components.KingBadge
 import io.github.khaledx5.dominoscore.ui.components.KoozBadge
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
+import io.github.khaledx5.dominoscore.ui.components.rememberSettled
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
-/** A player's card on the game screen: who they are, where they stand and their score. */
+/**
+ * A player's card on the game screen: who they are, where they stand and their score.
+ * A KING or KOOZ title won while the card is on screen arrives with its own animation.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Composable ColumnScope.() -> Unit = {}) {
     val gameColors = DominoThemeExtras.gameColors
+    val settled = rememberSettled()
     val border by animateColorAsState(
         targetValue = if (player.isKing) gameColors.king else Color.Transparent,
         label = "kingCardBorder",
@@ -75,8 +82,8 @@ fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Comp
                         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
                     ) {
                         if (!player.isKing && !player.isKooz) RankChip(rank = player.rank)
-                        if (player.isKing) KingBadge()
-                        if (player.isKooz) KoozBadge()
+                        if (player.isKing) CrownEntrance(animate = settled) { KingBadge() }
+                        if (player.isKooz) BucketDrop(animate = settled) { KoozBadge() }
                     }
                 }
                 AnimatedScore(score = player.score)

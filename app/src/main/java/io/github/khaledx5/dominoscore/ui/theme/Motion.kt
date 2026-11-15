@@ -19,6 +19,9 @@ object Motion {
     /** How long a floating +N / -N label stays on screen. */
     const val FLOATING_LABEL_MS = 900
 
+    /** The shine that sweeps across a new KING's badge. */
+    const val SHIMMER_MS = 600
+
     /** The winner celebration. */
     const val CELEBRATION_MS = 1_500
 
