@@ -42,9 +42,14 @@ class SetupViewModel @Inject constructor(private val startGame: StartGameUseCase
         _uiState.update { it.copy(playerCount = count, nameErrors = emptyMap()) }
     }
 
+    /** Editing a name clears its own error and every duplicate mark, since a duplicate involves two fields. */
     fun updateName(seat: Int, name: String) = _uiState.update {
         val names = it.names.toMutableList().apply { set(seat, name) }
-        it.copy(names = names, nameErrors = it.nameErrors - seat)
+        val nameErrors = it.nameErrors.filter { (errorSeat, error) ->
+            errorSeat != seat &&
+                error != NameFieldError.DUPLICATE
+        }
+        it.copy(names = names, nameErrors = nameErrors)
     }
 
     fun start() = submit(replaceActiveGame = false)

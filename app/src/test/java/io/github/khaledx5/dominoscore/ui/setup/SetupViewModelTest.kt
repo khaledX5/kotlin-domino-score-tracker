@@ -120,6 +120,17 @@ class SetupViewModelTest {
     }
 
     @Test
+    fun fixingOneOfTwoDuplicateNamesClearsBothMarks() = runTest {
+        viewModel.selectPlayerCount(3)
+        typeNames("Omar", "omar", "")
+        viewModel.start()
+
+        viewModel.updateName(1, "Mona")
+
+        assertEquals(mapOf(2 to NameFieldError.BLANK), state.nameErrors)
+    }
+
+    @Test
     fun asksBeforeReplacingAGameInProgress() = runTest {
         StartGameUseCase(repository, testClock)(targetScore = 100, playerNames = listOf("Ali", "Sara"))
         val oldGame = repository.activeGame().id
