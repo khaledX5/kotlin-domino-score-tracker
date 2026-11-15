@@ -43,4 +43,54 @@ class RankingTest {
 
         assertEquals(listOf(2, 1, 3), rankPlayers(players).map { it.player.seat })
     }
+
+    private fun titlesOf(vararg values: Int) = rankPlayers(scores(*values)).map { ranked ->
+        when {
+            ranked.isKing && ranked.isKooz -> "KING+KOOZ"
+            ranked.isKing -> "KING"
+            ranked.isKooz -> "KOOZ"
+            else -> "#${ranked.rank}"
+        }
+    }
+
+    @Test
+    fun firstPlaceIsKingAndLastPlaceIsKoozWithFourPlayers() {
+        assertEquals(listOf("KING", "#2", "#3", "KOOZ"), titlesOf(40, 150, 90, 10))
+    }
+
+    @Test
+    fun twoPlayersAreOneKingAndOneKooz() {
+        assertEquals(listOf("KING", "KOOZ"), titlesOf(30, 75))
+    }
+
+    @Test
+    fun everyPlayerTiedOnTheHighestScoreIsKing() {
+        assertEquals(listOf("KING", "KING", "#3", "KOOZ"), titlesOf(120, 50, 120, 0))
+    }
+
+    @Test
+    fun everyPlayerTiedOnTheLowestScoreIsKooz() {
+        assertEquals(listOf("KING", "#2", "KOOZ", "KOOZ"), titlesOf(5, 200, 5, 60))
+    }
+
+    @Test
+    fun whenAllScoresAreEqualEveryoneIsBothKingAndKooz() {
+        assertEquals(listOf("KING+KOOZ", "KING+KOOZ", "KING+KOOZ"), titlesOf(0, 0, 0))
+    }
+
+    @Test
+    fun negativeScoresCanBeKooz() {
+        assertEquals(listOf("KING", "#2", "KOOZ"), titlesOf(-30, 0, 15))
+    }
+
+    @Test
+    fun titlesFollowScoresNotSeats() {
+        val players = listOf(player(seat = 0, score = 10), player(seat = 1, score = 90))
+
+        val king = rankPlayers(players).single { it.isKing }
+        val kooz = rankPlayers(players).single { it.isKooz }
+
+        assertEquals(1, king.player.seat)
+        assertEquals(0, kooz.player.seat)
+    }
 }
