@@ -5,6 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalConfiguration
 
 /**
  * Midnight Teal on Material 3. Teal is the primary action color; text on it is navy, because
@@ -45,14 +46,19 @@ private val LocalGameColors = staticCompositionLocalOf { MidnightTealGameColors 
 /** The app ships one light theme, matching the score sheet look players expect at the table. */
 @Composable
 fun DominoTheme(content: @Composable () -> Unit) {
+    // The app language decides the font: Cairo for Arabic, Inter for everything else.
+    val isArabic = LocalConfiguration.current.locales[0].language == ARABIC
     CompositionLocalProvider(LocalGameColors provides MidnightTealGameColors) {
         MaterialTheme(
             colorScheme = MidnightTealColorScheme,
             shapes = DominoShapes,
+            typography = if (isArabic) ArabicTypography else EnglishTypography,
             content = content,
         )
     }
 }
+
+private const val ARABIC = "ar"
 
 object DominoThemeExtras {
     val gameColors: GameColors
