@@ -40,6 +40,9 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
 
     override suspend fun findGame(gameId: GameId): Game? = dao.findGame(gameId.value)?.toDomain()
 
+    override fun observeFinishedGames(): Flow<List<Game>> =
+        dao.observeFinishedGames().map { games -> games.map { it.toDomain() } }
+
     override suspend fun findScoreLog(gameId: GameId): ScoreLog = database.withTransaction {
         ScoreLog(
             completedRounds = dao.findCompletedRounds(gameId.value).map { it.toDomain() },

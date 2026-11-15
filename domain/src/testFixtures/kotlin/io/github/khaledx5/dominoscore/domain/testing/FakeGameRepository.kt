@@ -53,6 +53,14 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun findGame(gameId: GameId): Game? = games.value.firstOrNull { it.id == gameId }
 
+    override fun observeFinishedGames(): Flow<List<Game>> = games
+        .map { list ->
+            list.filterNot {
+                it.isActive
+            }.sortedWith(compareByDescending<Game> { it.startedAt }.thenByDescending { it.id.value })
+        }
+        .distinctUntilChanged()
+
     override suspend fun findScoreLog(gameId: GameId): ScoreLog =
         ScoreLog(roundsByGame[gameId].orEmpty().toList(), operationsByGame[gameId].orEmpty().toList())
 

@@ -53,6 +53,14 @@
     <string name="rename_title">Rename %1$s</string>
     <string name="rename_label">Name</string>
     <string name="rename_confirm">Save</string>
+    <string name="home_history">Past games</string>
+    <string name="history_title">Past games</string>
+    <string name="history_empty">Finished games will show up here.</string>
+    <string name="history_winner">🏆 %1$s won</string>
+    <string name="history_abandoned">Not finished</string>
+    <string name="history_date_target">%1$s · target %2$d</string>
+    <string name="detail_title">Game details</string>
+    <string name="detail_round_unfinished">Round %1$d (not finished)</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>

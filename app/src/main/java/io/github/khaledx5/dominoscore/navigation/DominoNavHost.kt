@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.khaledx5.dominoscore.ui.game.GameScreen
+import io.github.khaledx5.dominoscore.ui.history.GameDetailScreen
+import io.github.khaledx5.dominoscore.ui.history.HistoryScreen
 import io.github.khaledx5.dominoscore.ui.home.HomeScreen
 import io.github.khaledx5.dominoscore.ui.results.RoundResultsScreen
 import io.github.khaledx5.dominoscore.ui.setup.SetupScreen
@@ -29,6 +31,13 @@ data object SetupDestination
 @Serializable
 data object GameDestination
 
+@Serializable
+data object HistoryDestination
+
+/** The rounds of one past game. */
+@Serializable
+data class GameDetailDestination(val gameId: Long)
+
 /** The celebration and final rankings of a finished game. */
 @Serializable
 data class SummaryDestination(val gameId: Long)
@@ -44,7 +53,17 @@ fun DominoNavHost(modifier: Modifier = Modifier, navController: NavHostControlle
             HomeScreen(
                 onNewGame = { navController.navigate(SetupDestination) },
                 onContinueGame = { navController.navigate(GameDestination) },
+                onOpenHistory = { navController.navigate(HistoryDestination) },
             )
+        }
+        composable<HistoryDestination> {
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onOpenGame = { navController.navigate(GameDetailDestination(it)) },
+            )
+        }
+        composable<GameDetailDestination> {
+            GameDetailScreen(onBack = { navController.popBackStack() })
         }
         composable<SetupDestination> {
             SetupScreen(

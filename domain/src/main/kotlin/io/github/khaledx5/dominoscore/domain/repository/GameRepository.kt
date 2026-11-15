@@ -29,6 +29,9 @@ interface GameRepository {
 
     suspend fun findActiveGame(): Game?
 
+    /** Every COMPLETED or ABANDONED game, newest first, emitted again after every change. */
+    fun observeFinishedGames(): Flow<List<Game>>
+
     /** Any game, active or finished, or null when there is no game with [gameId]. */
     suspend fun findGame(gameId: GameId): Game?
 

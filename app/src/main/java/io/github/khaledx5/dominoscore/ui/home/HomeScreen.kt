@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import io.github.khaledx5.dominoscore.ui.theme.Spacing
 fun HomeScreen(
     onNewGame: () -> Unit,
     onContinueGame: () -> Unit,
+    onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -48,6 +50,7 @@ fun HomeScreen(
         onContinueGame = onContinueGame,
         onOpenSettings = { showSettings = true },
         modifier = modifier,
+        onOpenHistory = onOpenHistory,
     )
     if (showSettings) {
         SettingsSheet(onDismiss = { showSettings = false })
@@ -61,6 +64,7 @@ fun HomeContent(
     onContinueGame: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenHistory: () -> Unit = {},
 ) {
     Scaffold(modifier = modifier, containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
         Column(
@@ -94,6 +98,15 @@ fun HomeContent(
                     .height(Spacing.primaryButtonHeight),
             ) {
                 Text(stringResource(R.string.home_new_game), style = MaterialTheme.typography.titleMedium)
+            }
+            OutlinedButton(
+                onClick = onOpenHistory,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Spacing.primaryButtonHeight),
+            ) {
+                Text(stringResource(R.string.home_history), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
