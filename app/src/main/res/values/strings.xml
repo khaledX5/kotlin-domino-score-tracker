@@ -2,4 +2,8 @@
 <resources>
     <string name="app_name">Domino Score Tracker</string>
     <string name="home_tagline">Keep score of every domino game</string>
+    <string name="home_active_game_title">Game in progress</string>
+    <string name="home_active_game_details">Round %1$d · Target %2$d</string>
+    <string name="rank_number">#%1$d</string>
+    <string name="qualified">Qualified</string>
 </resources>

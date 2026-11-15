@@ -35,7 +35,8 @@ room {
 dependencies {
     implementation(project(":domain"))
 
-    implementation(libs.androidx.room.runtime)
+    // The app module builds the database for dependency injection, so RoomDatabase is part of the API.
+    api(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
