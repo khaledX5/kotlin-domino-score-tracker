@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "domino-score-tracker"
+
+include(":app", ":domain", ":data")

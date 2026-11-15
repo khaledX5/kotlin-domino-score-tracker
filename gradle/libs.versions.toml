@@ -1,6 +1,10 @@
 [versions]
 agp = "9.5.1"
 kotlin = "2.4.21"
+jvmToolchain = "21"
+compileSdk = "37"
+targetSdk = "37"
+minSdk = "26"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
