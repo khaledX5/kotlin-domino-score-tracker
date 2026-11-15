@@ -11,8 +11,6 @@
     <string name="rank_kooz_mark" translatable="false">🪣</string>
     <string name="rank_king_badge" translatable="false">👑 KING</string>
     <string name="rank_kooz_badge" translatable="false">🪣 KOOZ</string>
-    <string name="badge_separator" translatable="false">–</string>
-    <string name="kooz_caption" translatable="false">على الله حكايته 😂</string>
     <string name="home_new_game">New game</string>
     <string name="home_continue_game">Continue game</string>
     <string name="game_round">Round %1$d</string>

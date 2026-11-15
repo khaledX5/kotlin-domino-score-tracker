@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.components.KingBadge
 import io.github.khaledx5.dominoscore.ui.components.KoozBadge
+import io.github.khaledx5.dominoscore.ui.components.PlayerMessageLine
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
@@ -199,6 +200,9 @@ private fun ResultCard(standing: StandingUi, delayMs: Int, animate: Boolean, mod
                             if (standing.isKing) KingBadge()
                             if (standing.isKooz) KoozBadge()
                         }
+                    }
+                    AnimatedVisibility(visible = titlesShown, enter = fadeIn() + expandVertically()) {
+                        PlayerMessageLine(standing.message)
                     }
                 }
                 Text(text = score.value.roundToInt().toString(), style = MaterialTheme.typography.headlineSmall)

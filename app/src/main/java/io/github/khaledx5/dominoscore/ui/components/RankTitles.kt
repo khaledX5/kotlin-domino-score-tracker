@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.khaledx5.dominoscore.R
-import io.github.khaledx5.dominoscore.ui.theme.CairoFontFamily
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
@@ -31,27 +30,14 @@ fun KingBadge(modifier: Modifier = Modifier) {
     )
 }
 
-/** 🪣 KOOZ – على الله حكايته 😂: the player (or players) on the lowest score. The caption stays in Arabic in every language. */
+/**
+ * 🪣 KOOZ: the player (or players) on the lowest score. The jokes that go with it come from the
+ * message library and are shown by PlayerMessageLine, not here.
+ */
 @Composable
 fun KoozBadge(modifier: Modifier = Modifier) {
     val gameColors = DominoThemeExtras.gameColors
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-    ) {
-        TitlePill(text = stringResource(R.string.rank_kooz_badge), container = gameColors.kooz)
-        Text(
-            text = stringResource(R.string.badge_separator),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.kooz_caption),
-            style = MaterialTheme.typography.bodySmall.copy(fontFamily = CairoFontFamily),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    TitlePill(text = stringResource(R.string.rank_kooz_badge), container = gameColors.kooz, modifier = modifier)
 }
 
 @Composable

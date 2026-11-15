@@ -16,6 +16,9 @@ object Motion {
     /** A screen sliding up from the bottom, like the round results. */
     const val SHEET_MS = 350
 
+    /** A player's old line fading out before the new one slides in. */
+    const val MESSAGE_OUT_MS = 200
+
     /** Ranking changes: KING / KOOZ badges, card highlights. */
     const val RANKING_MS = 350
 

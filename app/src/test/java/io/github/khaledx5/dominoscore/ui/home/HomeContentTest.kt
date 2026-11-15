@@ -57,7 +57,6 @@ class HomeContentTest {
         composeRule.onNodeWithText("-20").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("👑 KING", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("🪣 KOOZ", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("على الله حكايته 😂", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test

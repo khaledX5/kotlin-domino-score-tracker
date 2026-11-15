@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.ui.components.toStandings
+import io.github.khaledx5.dominoscore.ui.components.withMessages
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,12 +22,14 @@ import kotlinx.coroutines.flow.stateIn
 class RoundResultsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeActiveGame: ObserveActiveGameUseCase,
+    observeMessages: ObservePlayerMessagesUseCase,
 ) : ViewModel() {
 
     private val roundNumber: Int = checkNotNull(savedStateHandle[ROUND_NUMBER_ARG]) { "The route has a round number" }
 
     val uiState: StateFlow<RoundResultsUiState> = observeActiveGame()
-        .map { snapshot ->
+        .withMessages(observeMessages)
+        .map { (snapshot, messages) ->
             val nextRound = snapshot?.game?.currentRound?.number
             if (snapshot == null || nextRound == null) {
                 RoundResultsUiState.NoActiveGame
@@ -33,7 +37,7 @@ class RoundResultsViewModel @Inject constructor(
                 RoundResultsUiState.Ready(
                     roundNumber = roundNumber,
                     nextRound = nextRound,
-                    standings = snapshot.toStandings(),
+                    standings = snapshot.toStandings(messages),
                 )
             }
         }

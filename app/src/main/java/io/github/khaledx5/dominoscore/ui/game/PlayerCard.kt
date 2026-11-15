@@ -36,6 +36,7 @@ import io.github.khaledx5.dominoscore.ui.components.BucketDrop
 import io.github.khaledx5.dominoscore.ui.components.CrownEntrance
 import io.github.khaledx5.dominoscore.ui.components.KingBadge
 import io.github.khaledx5.dominoscore.ui.components.KoozBadge
+import io.github.khaledx5.dominoscore.ui.components.PlayerMessageLine
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.rememberSettled
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
@@ -85,6 +86,7 @@ fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Comp
                         if (player.isKing) CrownEntrance(animate = settled) { KingBadge() }
                         if (player.isKooz) BucketDrop(animate = settled) { KoozBadge() }
                     }
+                    PlayerMessageLine(player.message)
                 }
                 AnimatedScore(score = player.score)
             }

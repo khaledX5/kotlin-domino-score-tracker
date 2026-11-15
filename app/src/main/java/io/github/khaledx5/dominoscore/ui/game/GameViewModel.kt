@@ -19,10 +19,12 @@ import io.github.khaledx5.dominoscore.domain.usecase.InvalidAmount
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidTarget
 import io.github.khaledx5.dominoscore.domain.usecase.NoActiveGame
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ScoreLimitReached
 import io.github.khaledx5.dominoscore.domain.usecase.TargetUnchanged
 import io.github.khaledx5.dominoscore.domain.usecase.UnknownPlayer
+import io.github.khaledx5.dominoscore.ui.components.withMessages
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class GameViewModel @Inject constructor(
     observeActiveGame: ObserveActiveGameUseCase,
+    observeMessages: ObservePlayerMessagesUseCase,
     private val recordScore: RecordScoreUseCase,
     private val changeTarget: ChangeTargetUseCase,
     private val endRound: EndRoundUseCase,
@@ -51,15 +54,15 @@ class GameViewModel @Inject constructor(
     private val screenState = combine(scoreEntry, targetEdit, endedRound, ::ScreenState)
 
     val uiState: StateFlow<GameUiState> = combine(
-        observeActiveGame(),
+        observeActiveGame().withMessages(observeMessages),
         music.settings,
         screenState,
-    ) { snapshot, musicSettings, screen ->
+    ) { (snapshot, messages), musicSettings, screen ->
         if (snapshot == null) {
             GameUiState.NoActiveGame
         } else {
             GameUiState.Playing(
-                game = snapshot.toGameUi(),
+                game = snapshot.toGameUi(messages),
                 music = MusicButtonUi(visible = musicSettings.gameplayEnabled),
                 scoreEntry = screen.scoreEntry,
                 targetEdit = screen.targetEdit,

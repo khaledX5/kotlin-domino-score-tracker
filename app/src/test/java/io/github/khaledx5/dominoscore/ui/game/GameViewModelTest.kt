@@ -5,6 +5,7 @@ import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.audio.MusicTrack
 import io.github.khaledx5.dominoscore.domain.messages.MessageCategory
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
+import io.github.khaledx5.dominoscore.domain.messages.MessageTone
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessage
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageSelector
@@ -15,6 +16,7 @@ import io.github.khaledx5.dominoscore.domain.testing.FakePlayerMessageRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.testing.FakeMusicSettingsStore
@@ -63,6 +65,7 @@ class GameViewModelTest {
 
     private fun viewModel() = GameViewModel(
         ObserveActiveGameUseCase(games),
+        ObservePlayerMessagesUseCase(messages, { library }),
         recordScore,
         ChangeTargetUseCase(games, testClock),
         EndRoundUseCase(games, testClock),
@@ -310,12 +313,15 @@ class GameViewModelTest {
             val omar = games.activeGame().players.first()
             viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.ADD)
             viewModel.submitQuickAmount(10)
-            expectMostRecentItem()
 
             assertEquals(
                 listOf(MessageCategory.FIRST_TIME_KING, MessageCategory.FIRST_TIME_KOOZ),
                 messages.all.map { it.category },
             )
+            // Omar's card shows his KING line, Mona's her KOOZ line, straight from the library.
+            val cards = expectMostRecentItem().game().players
+            assertEquals(library.find(messages.all[0].messageId)?.text, cards[0].message?.text)
+            assertEquals(MessageTone.KOOZ, cards[1].message?.tone)
         }
     }
 

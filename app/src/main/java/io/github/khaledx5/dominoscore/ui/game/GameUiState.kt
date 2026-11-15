@@ -1,6 +1,8 @@
 package io.github.khaledx5.dominoscore.ui.game
 
 import androidx.compose.runtime.Immutable
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessage
+import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
@@ -78,8 +80,8 @@ data class TargetEditUi(val currentTarget: Int, val text: String, val error: Tar
 @Immutable
 data class MusicButtonUi(val visible: Boolean)
 
-internal fun GameSnapshot.toGameUi(): GameUi {
-    val standings = toStandings()
+internal fun GameSnapshot.toGameUi(messages: Map<PlayerId, RankingMessage> = emptyMap()): GameUi {
+    val standings = toStandings(messages)
     return GameUi(
         roundNumber = checkNotNull(game.currentRound) { "An active game always has a round in progress" }.number,
         target = game.target.value,
