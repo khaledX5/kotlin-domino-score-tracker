@@ -220,9 +220,7 @@ fun GameContent(
             item(key = "history") {
                 RecentMovesCard(moves = game.recentMoves) {
                     if (game.recentMoves.isNotEmpty()) {
-                        TextButton(onClick = onSeeAllMoves, modifier = Modifier.align(Alignment.End)) {
-                            Text(stringResource(R.string.game_history_see_more))
-                        }
+                        TextButton(onClick = onSeeAllMoves) { Text(stringResource(R.string.game_history_see_more)) }
                     }
                 }
             }

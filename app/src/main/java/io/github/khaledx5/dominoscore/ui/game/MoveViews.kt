@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,24 +51,25 @@ internal fun ScoreMove.toUi(players: List<Player>): MoveUi? = players.firstOrNul
     )
 }
 
-/** The latest moves of the game, newest on top, under the live ranking. */
+/** The latest moves of the game, newest on top, under the live ranking. [action] sits beside the title. */
 @Composable
-fun RecentMovesCard(
-    moves: List<MoveUi>,
-    modifier: Modifier = Modifier,
-    footer: @Composable ColumnScope.() -> Unit = {},
-) {
+fun RecentMovesCard(moves: List<MoveUi>, modifier: Modifier = Modifier, action: @Composable () -> Unit = {}) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(modifier = Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            Text(
-                text = stringResource(R.string.game_history),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = Spacing.s),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.game_history),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = Spacing.s),
+                )
+                action()
+            }
             if (moves.isEmpty()) {
                 Text(
                     text = stringResource(R.string.game_history_empty),
@@ -80,7 +80,6 @@ fun RecentMovesCard(
             } else {
                 moves.forEach { MoveRow(it) }
             }
-            footer()
         }
     }
 }
