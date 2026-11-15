@@ -3,7 +3,6 @@ package io.github.khaledx5.dominoscore.ui.game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.khaledx5.dominoscore.audio.GameplayMusicState
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
@@ -50,19 +49,15 @@ class GameViewModel @Inject constructor(
 
     val uiState: StateFlow<GameUiState> = combine(
         observeActiveGame(),
-        music.gameplayState,
         music.settings,
         screenState,
-    ) { snapshot, musicState, musicSettings, screen ->
+    ) { snapshot, musicSettings, screen ->
         if (snapshot == null) {
             GameUiState.NoActiveGame
         } else {
             GameUiState.Playing(
                 game = snapshot.toGameUi(),
-                music = MusicButtonUi(
-                    visible = musicSettings.gameplayEnabled,
-                    playing = musicState == GameplayMusicState.PLAYING,
-                ),
+                music = MusicButtonUi(visible = musicSettings.gameplayEnabled),
                 scoreEntry = screen.scoreEntry,
                 targetEdit = screen.targetEdit,
                 endedRound = screen.endedRound,
@@ -70,7 +65,7 @@ class GameViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
 
-    fun toggleMusic() = music.toggleGameplayMusic()
+    fun playMusic() = music.playGameplayMusic()
 
     fun openScoreEntry(playerId: Long, playerName: String, type: ScoreOperationType) {
         scoreEntry.value = ScoreEntryUi(playerId = playerId, playerName = playerName, type = type)

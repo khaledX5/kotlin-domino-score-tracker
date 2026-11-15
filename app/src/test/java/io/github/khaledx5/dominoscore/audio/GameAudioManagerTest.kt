@@ -1,6 +1,5 @@
 package io.github.khaledx5.dominoscore.audio
 
-import io.github.khaledx5.dominoscore.audio.GameplayMusicState.PAUSED
 import io.github.khaledx5.dominoscore.audio.GameplayMusicState.PLAYING
 import io.github.khaledx5.dominoscore.audio.GameplayMusicState.STOPPED
 import org.junit.Assert.assertEquals
@@ -19,10 +18,6 @@ class GameAudioManagerTest {
         override fun start() {
             playing = true
             starts++
-        }
-
-        override fun pause() {
-            playing = false
         }
 
         override fun setVolume(volume: Float) {
@@ -72,32 +67,29 @@ class GameAudioManagerTest {
     }
 
     @Test
-    fun playPauseAndResumeReuseOnePlayerSoThePositionIsKept() {
+    fun theGameplayTunePlaysOnceAndReleasesItselfWhenItEnds() {
         audio.playGameplayMusic()
-        audio.pauseGameplayMusic()
-        audio.resumeGameplayMusic()
-
+        val tune = gameplay()
         assertEquals(PLAYING, audio.gameplayState.value)
-        assertEquals(1, created.size)
-        assertEquals(2, gameplay().starts)
-    }
 
-    @Test
-    fun playingTwiceDoesNotStartASecondPlayer() {
-        audio.playGameplayMusic()
-        audio.playGameplayMusic()
+        tune.onCompletion()
 
-        assertEquals(1, created.size)
-        assertEquals(1, gameplay().starts)
-    }
-
-    @Test
-    fun pausingGivesUpAudioFocus() {
-        audio.playGameplayMusic()
-        audio.pauseGameplayMusic()
-
-        assertEquals(PAUSED, audio.gameplayState.value)
+        assertTrue(tune.released)
+        assertEquals(STOPPED, audio.gameplayState.value)
         assertFalse(focus.held)
+    }
+
+    @Test
+    fun tappingAgainStartsTheTuneOverLikeADoorbell() {
+        audio.playGameplayMusic()
+        val first = gameplay()
+
+        audio.playGameplayMusic()
+
+        assertTrue(first.released)
+        assertEquals(2, created.size)
+        assertTrue(gameplay().playing)
+        assertEquals(PLAYING, audio.gameplayState.value)
     }
 
     @Test
@@ -153,30 +145,29 @@ class GameAudioManagerTest {
         audio.playGameplayMusic()
 
         assertEquals(STOPPED, audio.gameplayState.value)
-        assertFalse(gameplay().playing)
+        assertTrue(gameplay().released)
     }
 
     @Test
-    fun aCallPausesTheMusicAndItComesBackAfterwards() {
+    fun aCallEndsTheTune() {
         audio.playGameplayMusic()
+        val tune = gameplay()
 
         focus.listener!!(FocusChange.LOST_TRANSIENTLY)
-        assertEquals(PAUSED, audio.gameplayState.value)
 
-        focus.listener!!(FocusChange.GAINED)
-        assertEquals(PLAYING, audio.gameplayState.value)
-        assertTrue(gameplay().playing)
+        assertTrue(tune.released)
+        assertEquals(STOPPED, audio.gameplayState.value)
     }
 
     @Test
-    fun anotherMusicAppTakingOverPausesForGood() {
-        audio.playGameplayMusic()
+    fun anotherAppTakingOverEndsTheWinnerTuneToo() {
+        audio.playWinnerMusic()
+        val tune = winner()
 
         focus.listener!!(FocusChange.LOST)
-        focus.listener!!(FocusChange.GAINED)
 
-        assertEquals(PAUSED, audio.gameplayState.value)
-        assertFalse(gameplay().playing)
+        assertTrue(tune.released)
+        assertFalse(focus.held)
     }
 
     @Test

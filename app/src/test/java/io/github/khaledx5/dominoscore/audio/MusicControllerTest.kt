@@ -27,14 +27,11 @@ class MusicControllerTest {
     private val startGame = StartGameUseCase(games, testClock)
 
     @Test
-    fun theMusicButtonCyclesPlayPauseResume() {
-        controller.toggleGameplayMusic()
-        assertEquals(GameplayMusicState.PLAYING, controller.gameplayState.value)
+    fun everyTapOfTheMusicButtonPlaysTheTuneOnce() {
+        controller.playGameplayMusic()
+        controller.playGameplayMusic()
 
-        controller.toggleGameplayMusic()
-        assertEquals(GameplayMusicState.PAUSED, controller.gameplayState.value)
-
-        controller.toggleGameplayMusic()
+        assertEquals(listOf(MusicTrack.GAMEPLAY, MusicTrack.GAMEPLAY), audio.started)
         assertEquals(GameplayMusicState.PLAYING, controller.gameplayState.value)
     }
 
@@ -42,14 +39,14 @@ class MusicControllerTest {
     fun disabledGameplayMusicIgnoresTheButton() = runTest {
         store.setGameplayEnabled(false)
 
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         assertEquals(GameplayMusicState.STOPPED, controller.gameplayState.value)
     }
 
     @Test
     fun disablingGameplayMusicStopsItAtOnce() = runTest {
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         store.setGameplayEnabled(false)
 
@@ -57,12 +54,12 @@ class MusicControllerTest {
     }
 
     @Test
-    fun goingToTheBackgroundPausesTheMusic() {
-        controller.toggleGameplayMusic()
+    fun goingToTheBackgroundStopsTheMusic() {
+        controller.playGameplayMusic()
 
         controller.onAppBackground()
 
-        assertEquals(GameplayMusicState.PAUSED, controller.gameplayState.value)
+        assertEquals(GameplayMusicState.STOPPED, controller.gameplayState.value)
     }
 
     @Test
@@ -77,7 +74,7 @@ class MusicControllerTest {
 
     @Test
     fun celebratingStopsTheGameplayMusic() {
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         controller.celebrateWinner()
 
@@ -87,7 +84,7 @@ class MusicControllerTest {
     @Test
     fun theSavedVolumeIsApplied() = runTest {
         store.setVolume(0.3f)
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         assertEquals(0.3f, audio.volume, 0.001f)
     }
@@ -95,7 +92,7 @@ class MusicControllerTest {
     @Test
     fun replacingTheGameStopsItsMusic() = runTest {
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         startGame(targetScore = 100, playerNames = listOf("Ali", "Sara"), replaceActiveGame = true)
 
@@ -105,7 +102,7 @@ class MusicControllerTest {
     @Test
     fun theMusicKeepsPlayingWhileTheSameGameChanges() = runTest {
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
-        controller.toggleGameplayMusic()
+        controller.playGameplayMusic()
 
         EndRoundUseCase(games, testClock)()
 

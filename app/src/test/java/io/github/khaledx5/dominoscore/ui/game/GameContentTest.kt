@@ -34,8 +34,8 @@ class GameContentTest {
     fun showsTheRoundTargetAndEveryPlayer() {
         composeRule.setContent {
             DominoTheme {
-                GameContent(game, MusicButtonUi(visible = true, playing = false), onBack = {
-                }, onToggleMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
+                GameContent(game, MusicButtonUi(visible = true), onBack = {
+                }, onPlayMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
             }
         }
 
@@ -46,15 +46,15 @@ class GameContentTest {
     }
 
     @Test
-    fun theMusicButtonSaysWhatItWillDo() {
-        var toggles = 0
+    fun theMusicButtonPlaysOnEveryTap() {
+        var taps = 0
         composeRule.setContent {
             DominoTheme {
                 GameContent(
                     game = game,
-                    music = MusicButtonUi(visible = true, playing = true),
+                    music = MusicButtonUi(visible = true),
                     onBack = {},
-                    onToggleMusic = { toggles++ },
+                    onPlayMusic = { taps++ },
                     onAdd = {},
                     onPenalty = {},
                     onEditTarget = {},
@@ -63,17 +63,19 @@ class GameContentTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Pause music").performClick()
+        composeRule.onNodeWithContentDescription("Play music").performClick()
+        composeRule.onNodeWithContentDescription("Play music").performClick()
 
-        assertEquals(1, toggles)
+        // Same button, same label, after every tap: nothing stays switched on.
+        assertEquals(2, taps)
     }
 
     @Test
     fun noMusicButtonWhenGameplayMusicIsOff() {
         composeRule.setContent {
             DominoTheme {
-                GameContent(game, MusicButtonUi(visible = false, playing = false), onBack = {
-                }, onToggleMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
+                GameContent(game, MusicButtonUi(visible = false), onBack = {
+                }, onPlayMusic = {}, onAdd = {}, onPenalty = {}, onEditTarget = {}, onPrimaryAction = {})
             }
         }
 
@@ -88,9 +90,9 @@ class GameContentTest {
             DominoTheme {
                 GameContent(
                     game = current,
-                    music = MusicButtonUi(visible = false, playing = false),
+                    music = MusicButtonUi(visible = false),
                     onBack = {},
-                    onToggleMusic = {},
+                    onPlayMusic = {},
                     onAdd = {},
                     onPenalty = {},
                     onEditTarget = {},

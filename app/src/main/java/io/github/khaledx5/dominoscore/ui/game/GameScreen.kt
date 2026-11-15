@@ -20,10 +20,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
@@ -89,7 +87,7 @@ fun GameScreen(
                 game = current.game,
                 music = current.music,
                 onBack = onBack,
-                onToggleMusic = viewModel::toggleMusic,
+                onPlayMusic = viewModel::playMusic,
                 onAdd = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.ADD) },
                 onPenalty = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.PENALTY) },
                 onEditTarget = { viewModel.openTargetEdit(current.game.target) },
@@ -123,7 +121,7 @@ fun GameContent(
     game: GameUi,
     music: MusicButtonUi,
     onBack: () -> Unit,
-    onToggleMusic: () -> Unit,
+    onPlayMusic: () -> Unit,
     onAdd: (StandingUi) -> Unit,
     onPenalty: (StandingUi) -> Unit,
     onEditTarget: () -> Unit,
@@ -146,7 +144,7 @@ fun GameContent(
                 },
                 actions = {
                     TargetChip(target = game.target, onClick = onEditTarget)
-                    if (music.visible) MusicButton(playing = music.playing, onClick = onToggleMusic)
+                    if (music.visible) MusicButton(onClick = onPlayMusic)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
@@ -210,22 +208,14 @@ private fun TargetChip(target: Int, onClick: () -> Unit, modifier: Modifier = Mo
     }
 }
 
-/** Filled teal while music plays, outlined while it is off or paused: the state reads at a glance. */
+/** Plays the tune once per tap, like a doorbell. It never stays pressed: there is nothing to switch off. */
 @Composable
-private fun MusicButton(playing: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val description = stringResource(if (playing) R.string.game_music_pause else R.string.game_music_play)
-    val icon = @Composable {
-        Icon(painter = painterResource(R.drawable.ic_music_note), contentDescription = description)
-    }
-    if (playing) {
-        FilledIconButton(
-            onClick = onClick,
-            modifier = modifier,
-            colors = IconButtonDefaults.filledIconButtonColors(),
-            content = icon,
+private fun MusicButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedIconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            painter = painterResource(R.drawable.ic_music_note),
+            contentDescription = stringResource(R.string.game_music_play),
         )
-    } else {
-        OutlinedIconButton(onClick = onClick, modifier = modifier, content = icon)
     }
 }
 
@@ -266,9 +256,9 @@ private fun GameContentPreview() {
     DominoTheme {
         GameContent(
             game = GameUi(roundNumber = 2, target = 150, players = players, standings = players),
-            music = MusicButtonUi(visible = true, playing = true),
+            music = MusicButtonUi(visible = true),
             onBack = {},
-            onToggleMusic = {},
+            onPlayMusic = {},
             onAdd = {},
             onPenalty = {},
             onEditTarget = {},

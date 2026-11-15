@@ -23,7 +23,6 @@ class MediaPlayerFactory @Inject constructor(@param:ApplicationContext private v
         } catch (_: Resources.NotFoundException) {
             null
         } ?: return null
-        mediaPlayer.isLooping = track.looping
         mediaPlayer.setOnCompletionListener { onCompletion() }
         return MediaPlayerMusicPlayer(mediaPlayer)
     }
@@ -31,8 +30,6 @@ class MediaPlayerFactory @Inject constructor(@param:ApplicationContext private v
 
 private class MediaPlayerMusicPlayer(private val mediaPlayer: MediaPlayer) : MusicPlayer {
     override fun start() = mediaPlayer.start()
-
-    override fun pause() = mediaPlayer.pause()
 
     override fun setVolume(volume: Float) = mediaPlayer.setVolume(volume, volume)
 

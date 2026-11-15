@@ -76,7 +76,7 @@ data class TargetEditUi(val currentTarget: Int, val text: String, val error: Tar
 
 /** The music button is hidden when gameplay music is switched off in the settings. */
 @Immutable
-data class MusicButtonUi(val visible: Boolean, val playing: Boolean)
+data class MusicButtonUi(val visible: Boolean)
 
 internal fun GameSnapshot.toGameUi(): GameUi {
     val standings = toStandings()

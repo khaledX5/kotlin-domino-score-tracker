@@ -3,17 +3,15 @@ package io.github.khaledx5.dominoscore.audio
 import androidx.annotation.RawRes
 import io.github.khaledx5.dominoscore.R
 
-/** The two music tracks the app plays. Gameplay music loops; the winner tune plays once. */
-enum class MusicTrack(@param:RawRes val resId: Int, val looping: Boolean) {
-    GAMEPLAY(R.raw.gameplay_music, looping = true),
-    WINNER(R.raw.winner_music, looping = false),
+/** The two tunes the app plays. Each plays once per request. */
+enum class MusicTrack(@param:RawRes val resId: Int) {
+    GAMEPLAY(R.raw.gameplay_music),
+    WINNER(R.raw.winner_music),
 }
 
 /** One loaded track. Wrapping the platform player keeps the playback rules testable on the JVM. */
 interface MusicPlayer {
     fun start()
-
-    fun pause()
 
     fun setVolume(volume: Float)
 

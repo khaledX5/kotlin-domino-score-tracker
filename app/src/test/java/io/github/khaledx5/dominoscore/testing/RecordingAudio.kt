@@ -19,8 +19,6 @@ class RecordingAudio {
                     started += track
                 }
 
-                override fun pause() = Unit
-
                 override fun setVolume(volume: Float) {
                     this@RecordingAudio.volume = volume
                 }

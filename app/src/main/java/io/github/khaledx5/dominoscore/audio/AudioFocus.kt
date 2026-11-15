@@ -7,10 +7,10 @@ import javax.inject.Inject
 enum class FocusChange {
     GAINED,
 
-    /** Another app took over for good (music app, video): stop until the user starts again. */
+    /** Another app took over for good (music app, video). */
     LOST,
 
-    /** A short interruption such as a call or a navigation prompt: pause and resume after it. */
+    /** A short interruption such as a call or a navigation prompt. */
     LOST_TRANSIENTLY,
 
     /** Something short plays over us: keep going, quieter. */
@@ -24,12 +24,13 @@ interface AudioFocus {
     fun abandon()
 }
 
+/** Asks for transient focus: the tunes are short, so other apps only duck or pause for a moment. */
 class SystemAudioFocus @Inject constructor(private val audioManager: AudioManager) : AudioFocus {
 
     private var activeRequest: AudioFocusRequest? = null
 
     override fun request(onChange: (FocusChange) -> Unit): Boolean {
-        val request = activeRequest ?: AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+        val request = activeRequest ?: AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(GameMusicAttributes)
             .setOnAudioFocusChangeListener { change -> change.toFocusChange()?.let(onChange) }
             .build()

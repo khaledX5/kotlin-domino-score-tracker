@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The music rules of the app, on top of [GameAudioManager]: settings are applied as soon as they
- * change, gameplay music only plays when enabled and asked for, and the winner tune only plays
- * when enabled. Screens talk to this class, never to the players.
+ * change, the gameplay tune plays once per tap of the music button when enabled, and the winner
+ * tune only plays when enabled. Screens talk to this class, never to the players.
  */
 @Singleton
 class MusicController @Inject constructor(
@@ -47,18 +47,13 @@ class MusicController @Inject constructor(
         }
     }
 
-    /** The music button: off -> play, playing -> pause, paused -> resume from the same spot. */
-    fun toggleGameplayMusic() {
-        if (!settings.value.gameplayEnabled) return
-        when (audio.gameplayState.value) {
-            GameplayMusicState.STOPPED -> audio.playGameplayMusic()
-            GameplayMusicState.PLAYING -> audio.pauseGameplayMusic()
-            GameplayMusicState.PAUSED -> audio.resumeGameplayMusic()
-        }
+    /** The music button, like a doorbell: every tap plays the tune once from the start. */
+    fun playGameplayMusic() {
+        if (settings.value.gameplayEnabled) audio.playGameplayMusic()
     }
 
     /** The app left the screen: music must not keep playing in the background. */
-    fun onAppBackground() = audio.pauseGameplayMusic()
+    fun onAppBackground() = audio.stopAllMusic()
 
     fun stopGameplayMusic() = audio.stopGameplayMusic()
 

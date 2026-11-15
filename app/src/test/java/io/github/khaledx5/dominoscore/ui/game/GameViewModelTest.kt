@@ -2,6 +2,7 @@ package io.github.khaledx5.dominoscore.ui.game
 
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.audio.MusicController
+import io.github.khaledx5.dominoscore.audio.MusicTrack
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
@@ -29,8 +30,9 @@ class GameViewModelTest {
 
     private val games = FakeGameRepository()
     private val settings = FakeMusicSettingsStore()
+    private val recordingAudio = RecordingAudio()
     private val music = MusicController(
-        audio = RecordingAudio().manager,
+        audio = recordingAudio.manager,
         settingsStore = settings,
         observeActiveGame = ObserveActiveGameUseCase(games),
         scope = TestScope(mainDispatcherRule.dispatcher),
@@ -60,17 +62,13 @@ class GameViewModelTest {
     }
 
     @Test
-    fun theMusicButtonShowsThePlayingState() = runTest {
+    fun theMusicButtonPlaysTheTune() = runTest {
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
         val viewModel = viewModel()
 
-        viewModel.uiState.test {
-            assertFalse((expectMostRecentItem() as GameUiState.Playing).music.playing)
+        viewModel.playMusic()
 
-            viewModel.toggleMusic()
-
-            assertTrue((awaitItem() as GameUiState.Playing).music.playing)
-        }
+        assertEquals(listOf(MusicTrack.GAMEPLAY), recordingAudio.started)
     }
 
     @Test
