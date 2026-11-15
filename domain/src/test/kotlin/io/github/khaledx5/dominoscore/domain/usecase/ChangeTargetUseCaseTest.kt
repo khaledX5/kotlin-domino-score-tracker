@@ -4,6 +4,7 @@ import io.github.khaledx5.dominoscore.domain.fixedClock
 import io.github.khaledx5.dominoscore.domain.game
 import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.RangeError
+import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test

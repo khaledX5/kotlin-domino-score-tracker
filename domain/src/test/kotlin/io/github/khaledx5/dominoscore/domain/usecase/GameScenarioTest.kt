@@ -10,6 +10,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType.PENALTY
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.rules.WinnerSelection
+import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.valueOrFail
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

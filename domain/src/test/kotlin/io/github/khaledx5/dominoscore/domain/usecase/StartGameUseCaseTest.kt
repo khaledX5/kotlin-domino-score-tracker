@@ -7,6 +7,7 @@ import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.RangeError
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
 import io.github.khaledx5.dominoscore.domain.rules.RosterIssue
+import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.valueOrFail
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

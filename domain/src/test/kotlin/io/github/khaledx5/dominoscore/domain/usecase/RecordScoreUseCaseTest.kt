@@ -9,6 +9,7 @@ import io.github.khaledx5.dominoscore.domain.model.RangeError
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType.ADD
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType.PENALTY
 import io.github.khaledx5.dominoscore.domain.scores
+import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.valueOrFail
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

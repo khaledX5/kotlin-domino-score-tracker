@@ -1,4 +1,4 @@
-package io.github.khaledx5.dominoscore.domain.usecase
+package io.github.khaledx5.dominoscore.domain.testing
 
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
