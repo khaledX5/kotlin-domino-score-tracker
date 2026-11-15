@@ -47,6 +47,8 @@
     <string name="summary_trophy" translatable="false">🏆</string>
     <string name="summary_wins">%1$s wins!</string>
     <string name="summary_close">Close</string>
+    <string name="summary_final_ranking">Final ranking</string>
+    <string name="summary_play_again">Play again</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>

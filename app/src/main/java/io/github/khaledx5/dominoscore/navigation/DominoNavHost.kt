@@ -65,7 +65,11 @@ fun DominoNavHost(modifier: Modifier = Modifier, navController: NavHostControlle
             )
         }
         composable<SummaryDestination>(enterTransition = { fadeIn(tween(Motion.SHEET_MS)) }) {
-            SummaryScreen(onClose = { navController.popBackStack(HomeDestination, inclusive = false) })
+            SummaryScreen(
+                onClose = { navController.popBackStack(HomeDestination, inclusive = false) },
+                onOpenGame = { navController.navigate(GameDestination) { popUpTo(HomeDestination) } },
+                onNewGame = { navController.navigate(SetupDestination) { popUpTo(HomeDestination) } },
+            )
         }
         composable<RoundResultsDestination>(
             enterTransition = { slideInVertically(tween(Motion.SHEET_MS)) { it } + fadeIn() },

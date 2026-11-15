@@ -6,13 +6,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.domain.model.GameId
+import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.usecase.GetGameUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface SummaryUiState {
@@ -21,14 +26,28 @@ sealed interface SummaryUiState {
     /** The game is missing or has no winner: nothing to celebrate, the screen closes. */
     data object Unavailable : SummaryUiState
 
+    /**
+     * [standings] are the final ranking with KING / KOOZ and each player's last line. [replayNames]
+     * and [replayTarget] start the same table again; [replayStarted] tells the screen to open it.
+     */
     @Immutable
-    data class Ready(val winner: StandingUi, val standings: List<StandingUi>) : SummaryUiState
+    data class Ready(
+        val winner: StandingUi,
+        val standings: List<StandingUi>,
+        val replayNames: List<String> = emptyList(),
+        val replayTarget: Int = 0,
+        val replayStarted: Boolean = false,
+    ) : SummaryUiState
 }
 
 /** Reads the finished game by the id in its route, so the screen comes back the same after a process death. */
 @HiltViewModel
-class SummaryViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val getGame: GetGameUseCase) :
-    ViewModel() {
+class SummaryViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val getGame: GetGameUseCase,
+    private val observeMessages: ObservePlayerMessagesUseCase,
+    private val startGame: StartGameUseCase,
+) : ViewModel() {
 
     private val gameId = GameId(checkNotNull(savedStateHandle.get<Long>(GAME_ID_ARG)) { "The route has a game id" })
 
@@ -42,9 +61,26 @@ class SummaryViewModel @Inject constructor(savedStateHandle: SavedStateHandle, p
     private suspend fun load(): SummaryUiState {
         val snapshot = getGame(gameId) ?: return SummaryUiState.Unavailable
         val winnerId = snapshot.game.winnerId ?: return SummaryUiState.Unavailable
-        val standings = snapshot.toStandings()
+        val standings = snapshot.toStandings(observeMessages(gameId).first())
         val winner = standings.firstOrNull { it.playerId == winnerId.value } ?: return SummaryUiState.Unavailable
-        return SummaryUiState.Ready(winner = winner, standings = standings)
+        return SummaryUiState.Ready(
+            winner = winner,
+            standings = standings,
+            replayNames = snapshot.game.players.map { it.name.value },
+            replayTarget = snapshot.game.target.value,
+        )
+    }
+
+    /** Same names in the same seats, same target, scores back to zero. */
+    fun playAgain() {
+        val ready = _uiState.value as? SummaryUiState.Ready ?: return
+        if (ready.replayStarted) return
+        viewModelScope.launch {
+            // The finished game is no longer active, so nothing is replaced here.
+            if (startGame(ready.replayTarget, ready.replayNames) is Outcome.Success) {
+                _uiState.update { (it as? SummaryUiState.Ready)?.copy(replayStarted = true) ?: it }
+            }
+        }
     }
 
     internal companion object {
