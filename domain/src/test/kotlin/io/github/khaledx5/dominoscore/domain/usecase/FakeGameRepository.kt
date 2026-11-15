@@ -33,6 +33,8 @@ class FakeGameRepository : GameRepository {
 
     fun game(id: GameId): Game = games.value.single { it.id == id }
 
+    fun allGames(): List<Game> = games.value
+
     fun activeGame(): Game = games.value.single { it.isActive }
 
     /** Puts a game in storage directly, for tests that need a specific state. */
