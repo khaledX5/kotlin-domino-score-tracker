@@ -6,4 +6,34 @@
     <string name="home_active_game_details">Round %1$d · Target %2$d</string>
     <string name="rank_number">#%1$d</string>
     <string name="qualified">Qualified</string>
+    <string name="home_new_game">New game</string>
+    <string name="navigate_back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="points_suffix">pts</string>
+
+    <string name="setup_title">New game</string>
+    <string name="setup_target_title">Target score</string>
+    <string name="setup_target_custom">Custom</string>
+    <string name="setup_custom_target_label">Custom target</string>
+    <string name="setup_players_title">Number of players</string>
+    <plurals name="setup_players_label">
+        <item quantity="one">player</item>
+        <item quantity="other">players</item>
+    </plurals>
+    <string name="setup_names_title">Player names</string>
+    <string name="setup_player_placeholder">Player %1$d</string>
+    <string name="setup_start">Start game</string>
+    <string name="setup_replace_title">Start a new game?</string>
+    <string name="setup_replace_message">The game in progress will be kept in history as abandoned.</string>
+    <string name="setup_replace_confirm">Start new game</string>
+
+    <string name="error_target_not_a_number">Enter a whole number</string>
+    <string name="error_target_too_low">The target must be at least %1$d</string>
+    <string name="error_target_too_high">The target can be at most %1$d</string>
+    <string name="error_name_blank">Enter a name</string>
+    <plurals name="error_name_too_long">
+        <item quantity="one">Use %1$d character or fewer</item>
+        <item quantity="other">Use %1$d characters or fewer</item>
+    </plurals>
+    <string name="error_name_duplicate">Another player already has this name</string>
 </resources>

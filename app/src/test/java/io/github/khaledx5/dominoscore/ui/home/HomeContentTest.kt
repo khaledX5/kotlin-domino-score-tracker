@@ -26,7 +26,7 @@ class HomeContentTest {
             ),
         )
 
-        composeRule.setContent { DominoTheme { HomeContent(state = HomeUiState.Ready(game)) } }
+        composeRule.setContent { DominoTheme { HomeContent(state = HomeUiState.Ready(game), onNewGame = {}) } }
 
         composeRule.onNodeWithText("Game in progress").assertIsDisplayed()
         composeRule.onNodeWithText("Round 2 · Target 150").assertIsDisplayed()
@@ -37,7 +37,9 @@ class HomeContentTest {
 
     @Test
     fun hidesTheCardWhenNoGameIsInProgress() {
-        composeRule.setContent { DominoTheme { HomeContent(state = HomeUiState.Ready(activeGame = null)) } }
+        composeRule.setContent {
+            DominoTheme { HomeContent(state = HomeUiState.Ready(activeGame = null), onNewGame = {}) }
+        }
 
         composeRule.onNodeWithText("Domino Score Tracker").assertIsDisplayed()
         composeRule.onNodeWithText("Game in progress").assertDoesNotExist()
