@@ -5,3 +5,7 @@ plugins {
 kotlin {
     jvmToolchain(libs.versions.jvmToolchain.get().toInt())
 }
+
+dependencies {
+    testImplementation(libs.junit)
+}
