@@ -10,6 +10,12 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         consumerProguardFiles("consumer-rules.pro")
     }
+    lint {
+        warningsAsErrors = true
+        abortOnError = true
+        // Version-nag checks fail the build whenever a new release ships; updates are handled on purpose.
+        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion")
+    }
 }
 
 kotlin {

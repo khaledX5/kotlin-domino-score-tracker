@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.ui.home.HomeHeader
 
 @Composable
-fun DominoApp() {
-    Scaffold { innerPadding ->
+fun DominoApp(modifier: Modifier = Modifier) {
+    Scaffold(modifier = modifier) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
