@@ -6,6 +6,7 @@ import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
+import io.github.khaledx5.dominoscore.domain.model.Profile
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
@@ -36,6 +37,12 @@ interface GameRepository {
 
     /** Every COMPLETED or ABANDONED game, newest first, emitted again after every change. */
     fun observeFinishedGames(): Flow<List<Game>>
+
+    /**
+     * Every person who sat in any game, the one seated most recently first (the latest game, then
+     * its last seat first), emitted again after every new game.
+     */
+    fun observeProfiles(): Flow<List<Profile>>
 
     /** Any game, active or finished, or null when there is no game with [gameId]. */
     suspend fun findGame(gameId: GameId): Game?

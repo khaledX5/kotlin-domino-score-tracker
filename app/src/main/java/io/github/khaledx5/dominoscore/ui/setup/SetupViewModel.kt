@@ -12,6 +12,7 @@ import io.github.khaledx5.dominoscore.domain.rules.RosterIssue
 import io.github.khaledx5.dominoscore.domain.usecase.ActiveGameExists
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidRoster
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidTarget
+import io.github.khaledx5.dominoscore.domain.usecase.ObserveKnownPlayersUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,10 +23,21 @@ import kotlinx.coroutines.launch
 
 /** Holds the setup form. The rules themselves live in [StartGameUseCase]; this class only maps them to fields. */
 @HiltViewModel
-class SetupViewModel @Inject constructor(private val startGame: StartGameUseCase) : ViewModel() {
+class SetupViewModel @Inject constructor(
+    private val startGame: StartGameUseCase,
+    observeKnownPlayers: ObserveKnownPlayersUseCase,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SetupUiState())
     val uiState: StateFlow<SetupUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            observeKnownPlayers().collect { profiles ->
+                _uiState.update { state -> state.copy(knownPlayers = profiles.map { it.name.value }) }
+            }
+        }
+    }
 
     fun selectPresetTarget(value: Int) = _uiState.update {
         it.copy(targetChoice = TargetChoice.Preset(value), targetError = null)
@@ -50,6 +62,12 @@ class SetupViewModel @Inject constructor(private val startGame: StartGameUseCase
                 error != NameFieldError.DUPLICATE
         }
         it.copy(names = names, nameErrors = nameErrors)
+    }
+
+    /** Writes a known person into the first empty name field; does nothing when every field is filled. */
+    fun pickKnownPlayer(name: String) {
+        val seat = _uiState.value.firstEmptySeat ?: return
+        updateName(seat, name)
     }
 
     fun start() = submit(replaceActiveGame = false)

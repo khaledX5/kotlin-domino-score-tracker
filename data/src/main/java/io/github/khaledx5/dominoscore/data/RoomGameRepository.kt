@@ -18,6 +18,7 @@ import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
+import io.github.khaledx5.dominoscore.domain.model.Profile
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
@@ -41,6 +42,9 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
     override fun observeActiveGame(): Flow<Game?> = dao.observeActiveGame().map { it?.toDomain() }
 
     override suspend fun findActiveGame(): Game? = dao.findActiveGame()?.toDomain()
+
+    override fun observeProfiles(): Flow<List<Profile>> =
+        dao.observeProfiles().map { profiles -> profiles.map { it.toDomain() } }
 
     override suspend fun findGame(gameId: GameId): Game? = dao.findGame(gameId.value)?.toDomain()
 

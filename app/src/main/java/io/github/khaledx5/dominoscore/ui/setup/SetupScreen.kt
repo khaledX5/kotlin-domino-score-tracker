@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -87,6 +88,7 @@ fun SetupScreen(
         onCustomTargetChange = viewModel::updateCustomTarget,
         onPlayerCountChange = viewModel::selectPlayerCount,
         onNameChange = viewModel::updateName,
+        onPickKnownPlayer = viewModel::pickKnownPlayer,
         onStart = viewModel::start,
         modifier = modifier,
     )
@@ -111,6 +113,7 @@ fun SetupContent(
     onNameChange: (seat: Int, name: String) -> Unit,
     onStart: () -> Unit,
     modifier: Modifier = Modifier,
+    onPickKnownPlayer: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -162,7 +165,7 @@ fun SetupContent(
         ) {
             TargetSection(state, onSelectPreset, onSelectCustom, onCustomTargetChange)
             PlayerCountSection(playerCount = state.playerCount, onPlayerCountChange = onPlayerCountChange)
-            PlayerNamesSection(state = state, onNameChange = onNameChange)
+            PlayerNamesSection(state = state, onNameChange = onNameChange, onPickKnownPlayer = onPickKnownPlayer)
         }
     }
 }
@@ -247,6 +250,7 @@ private fun PlayerCountSection(playerCount: Int, onPlayerCountChange: (Int) -> U
 private fun PlayerNamesSection(
     state: SetupUiState,
     onNameChange: (seat: Int, name: String) -> Unit,
+    onPickKnownPlayer: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val playerColors = DominoThemeExtras.gameColors.players
@@ -277,6 +281,39 @@ private fun PlayerNamesSection(
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+        if (state.suggestedPlayers.isNotEmpty()) {
+            KnownPlayers(
+                names = state.suggestedPlayers,
+                enabled = state.firstEmptySeat != null,
+                onPick = onPickKnownPlayer,
+            )
+        }
+    }
+}
+
+/** People from earlier games: one tap writes the name into the first empty field, spelled the same way. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun KnownPlayers(names: List<String>, enabled: Boolean, onPick: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Text(
+            text = stringResource(R.string.setup_known_players),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        ) {
+            names.forEach { name ->
+                SuggestionChip(
+                    onClick = { onPick(name) },
+                    label = { Text(name) },
+                    enabled = enabled,
+                    shape = MaterialTheme.shapes.small,
+                )
+            }
         }
     }
 }
@@ -327,6 +364,7 @@ private fun SetupContentPreview() {
                 playerCount = 3,
                 names = listOf("Omar", "omar", "", ""),
                 nameErrors = mapOf(0 to NameFieldError.DUPLICATE, 1 to NameFieldError.DUPLICATE),
+                knownPlayers = listOf("Omar", "Mona", "Ali"),
             ),
             onBack = {},
             onSelectPreset = {},

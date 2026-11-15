@@ -2,6 +2,7 @@ package io.github.khaledx5.dominoscore.ui.setup
 
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
+import io.github.khaledx5.dominoscore.domain.usecase.ObserveKnownPlayersUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.testClock
@@ -19,7 +20,12 @@ class SetupViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeGameRepository()
-    private val viewModel = SetupViewModel(StartGameUseCase(repository, testClock))
+    private val startGame = StartGameUseCase(repository, testClock)
+
+    // Lazy, so the ViewModel starts collecting only after the main dispatcher rule is in place.
+    private val viewModel by lazy { newViewModel() }
+
+    private fun newViewModel() = SetupViewModel(startGame, ObserveKnownPlayersUseCase(repository))
 
     private val state get() = viewModel.uiState.value
 
@@ -168,5 +174,50 @@ class SetupViewModelTest {
         viewModel.onGameStartedHandled()
 
         assertFalse(state.gameStarted)
+    }
+
+    @Test
+    fun offersPeopleFromEarlierGamesTheMostRecentFirst() = runTest {
+        startGame(100, listOf("Omar", "Mona"))
+        startGame(100, listOf("Ali", "Sara"), replaceActiveGame = true)
+
+        val setup = newViewModel()
+
+        assertEquals(listOf("Sara", "Ali", "Mona", "Omar"), setup.uiState.value.suggestedPlayers)
+    }
+
+    @Test
+    fun aPickFillsTheFirstEmptyFieldAndLeavesTheSuggestions() = runTest {
+        startGame(100, listOf("Omar", "Mona"))
+        val setup = newViewModel()
+        setup.updateName(0, "Ali")
+
+        setup.pickKnownPlayer("Mona")
+
+        assertEquals(listOf("Ali", "Mona"), setup.uiState.value.visibleNames)
+        assertEquals(listOf("Omar"), setup.uiState.value.suggestedPlayers)
+    }
+
+    @Test
+    fun aNameTypedInAnyCaseIsNotSuggestedAgain() = runTest {
+        startGame(100, listOf("Omar", "Mona"))
+        val setup = newViewModel()
+
+        setup.updateName(1, " omar")
+
+        assertEquals(listOf("Mona"), setup.uiState.value.suggestedPlayers)
+    }
+
+    @Test
+    fun aPickDoesNothingWhenEveryFieldIsFilled() = runTest {
+        startGame(100, listOf("Omar", "Mona"))
+        val setup = newViewModel()
+        setup.updateName(0, "Ali")
+        setup.updateName(1, "Sara")
+
+        setup.pickKnownPlayer("Omar")
+
+        assertNull(setup.uiState.value.firstEmptySeat)
+        assertEquals(listOf("Ali", "Sara"), setup.uiState.value.visibleNames)
     }
 }

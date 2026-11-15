@@ -1,6 +1,7 @@
 package io.github.khaledx5.dominoscore.data.local
 
 import io.github.khaledx5.dominoscore.data.local.entity.PlayerEntity
+import io.github.khaledx5.dominoscore.data.local.entity.ProfileEntity
 import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.data.local.entity.ScoreOperationEntity
 import io.github.khaledx5.dominoscore.domain.model.Game
@@ -9,6 +10,8 @@ import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.Player
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
+import io.github.khaledx5.dominoscore.domain.model.Profile
+import io.github.khaledx5.dominoscore.domain.model.ProfileId
 import io.github.khaledx5.dominoscore.domain.model.Round
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
@@ -34,6 +37,9 @@ internal fun PlayerEntity.toDomain(): Player = Player(
     score = score,
     colorIndex = colorIndex,
 )
+
+internal fun ProfileEntity.toDomain(): Profile =
+    Profile(id = ProfileId(id), name = PlayerName.of(name).requireStored("name of profile $id"))
 
 internal fun RoundEntity.toDomain(): Round = Round(
     id = RoundId(id),

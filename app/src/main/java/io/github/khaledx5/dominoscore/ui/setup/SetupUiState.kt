@@ -2,6 +2,8 @@ package io.github.khaledx5.dominoscore.ui.setup
 
 import androidx.compose.runtime.Immutable
 import io.github.khaledx5.dominoscore.domain.model.Game
+import io.github.khaledx5.dominoscore.domain.model.PlayerName
+import io.github.khaledx5.dominoscore.domain.model.getOrNull
 
 sealed interface TargetChoice {
     data class Preset(val value: Int) : TargetChoice
@@ -23,7 +25,8 @@ enum class NameFieldError {
 
 /**
  * Everything the setup screen shows. All four name fields are kept, so going from 4 players
- * to 2 and back does not lose what was typed.
+ * to 2 and back does not lose what was typed. [knownPlayers] are people from earlier games,
+ * the most recent first.
  */
 @Immutable
 data class SetupUiState(
@@ -36,8 +39,19 @@ data class SetupUiState(
     val isStarting: Boolean = false,
     val confirmReplaceActiveGame: Boolean = false,
     val gameStarted: Boolean = false,
+    val knownPlayers: List<String> = emptyList(),
 ) {
     val visibleNames: List<String> get() = names.take(playerCount)
+
+    /** Known people not typed in yet (without case), offered as one-tap picks. */
+    val suggestedPlayers: List<String>
+        get() {
+            val typed = visibleNames.mapNotNull { PlayerName.of(it).getOrNull()?.key }.toSet()
+            return knownPlayers.filter { PlayerName.of(it).getOrNull()?.key !in typed }
+        }
+
+    /** The seat a pick goes to: the first empty name field, or null when every field is filled. */
+    val firstEmptySeat: Int? get() = visibleNames.indexOfFirst { it.isBlank() }.takeIf { it >= 0 }
 
     companion object {
         val TARGET_PRESETS = listOf(50, 100, 150, 200)

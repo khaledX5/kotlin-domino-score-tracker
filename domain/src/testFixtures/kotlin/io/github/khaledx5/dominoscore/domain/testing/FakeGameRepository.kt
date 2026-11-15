@@ -8,6 +8,8 @@ import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.Player
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
+import io.github.khaledx5.dominoscore.domain.model.Profile
+import io.github.khaledx5.dominoscore.domain.model.ProfileId
 import io.github.khaledx5.dominoscore.domain.model.Round
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
@@ -35,6 +37,12 @@ class FakeGameRepository : GameRepository {
     private val roundsByGame = mutableMapOf<GameId, MutableList<Round>>()
     private val moves = MutableStateFlow<List<Pair<GameId, ScoreMove>>>(emptyList())
     val finalStandings = mutableMapOf<GameId, List<RankedPlayer>>()
+
+    /** Profiles by name key, newest last; a profile seen again moves to the end. */
+    private val profiles = MutableStateFlow<List<Pair<String, Profile>>>(emptyList())
+    private val profileByPlayer = mutableMapOf<PlayerId, ProfileId>()
+
+    fun profileOf(playerId: PlayerId): ProfileId = profileByPlayer.getValue(playerId)
     var writeCount = 0
         private set
 
@@ -54,6 +62,9 @@ class FakeGameRepository : GameRepository {
         games.map { list -> list.firstOrNull { it.isActive } }.distinctUntilChanged()
 
     override suspend fun findActiveGame(): Game? = games.value.firstOrNull { it.isActive }
+
+    override fun observeProfiles(): Flow<List<Profile>> =
+        profiles.map { list -> list.map { it.second }.reversed() }.distinctUntilChanged()
 
     override suspend fun findGame(gameId: GameId): Game? = games.value.firstOrNull { it.id == gameId }
 
@@ -78,7 +89,9 @@ class FakeGameRepository : GameRepository {
             id = GameId(nextId++),
             target = newGame.target,
             status = GameStatus.ACTIVE,
-            players = newGame.playerNames.mapIndexed { seat, name -> newPlayer(seat, name) },
+            players = newGame.playerNames.mapIndexed { seat, name ->
+                newPlayer(seat, name).also { profileByPlayer[it.id] = profileIdOf(name) }
+            },
             currentRound = newRound(number = 1, startedAt = newGame.startedAt),
             startedAt = newGame.startedAt,
         )
@@ -149,6 +162,13 @@ class FakeGameRepository : GameRepository {
             completedRounds += it
             roundsByGame.getOrPut(game.id) { mutableListOf() } += it
         }
+    }
+
+    private fun profileIdOf(name: PlayerName): ProfileId {
+        val known = profiles.value.firstOrNull { it.first == name.key }?.second
+        val profile = known ?: Profile(ProfileId(nextId++), name)
+        profiles.update { list -> list.filterNot { it.first == name.key } + (name.key to profile) }
+        return profile.id
     }
 
     private fun abandonIfActive(game: Game): Game =

@@ -107,6 +107,7 @@
     </plurals>
     <string name="setup_names_title">Player names</string>
     <string name="setup_player_placeholder">Player %1$d</string>
+    <string name="setup_known_players">Played before</string>
     <string name="setup_start">Start game</string>
     <string name="setup_replace_title">Start a new game?</string>
     <string name="setup_replace_message">The game in progress will be kept in history as abandoned.</string>

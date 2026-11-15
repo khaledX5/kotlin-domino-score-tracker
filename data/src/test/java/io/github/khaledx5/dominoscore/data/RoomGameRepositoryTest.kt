@@ -249,6 +249,19 @@ class RoomGameRepositoryTest {
     }
 
     @Test
+    fun profilesComeMostRecentlySeatedFirst() = runTest {
+        repository.observeProfiles().test {
+            assertEquals(emptyList<Any>(), awaitItem())
+
+            start("Omar", "Mona")
+            assertEquals(listOf("Mona", "Omar"), awaitItem().map { it.name.value })
+
+            start("Ali", "omar")
+            assertEquals(listOf("Omar", "Ali", "Mona"), awaitItem().map { it.name.value })
+        }
+    }
+
+    @Test
     fun aRenameKeepsTheProfile() = runTest {
         val game = start("Omar", "Mona")
         val profile = dao.findPlayer(game.seat(0).value)!!.profileId

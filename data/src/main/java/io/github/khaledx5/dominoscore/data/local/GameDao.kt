@@ -62,6 +62,13 @@ interface GameDao {
     @Query("SELECT * FROM profiles WHERE name_key = :nameKey")
     suspend fun findProfile(nameKey: String): ProfileEntity?
 
+    /** Player ids only grow, so the newest seat of a profile tells when it was last at the table. */
+    @Query(
+        "SELECT profiles.* FROM profiles INNER JOIN players ON players.profile_id = profiles.id " +
+            "GROUP BY profiles.id ORDER BY MAX(players.id) DESC",
+    )
+    fun observeProfiles(): Flow<List<ProfileEntity>>
+
     @Query("SELECT * FROM profiles ORDER BY id")
     suspend fun findProfiles(): List<ProfileEntity>
 
