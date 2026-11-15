@@ -1,0 +1,782 @@
+{
+  "version": 1,
+  "language": "ar-EG",
+  "categories": [
+    {
+      "id": "FIRST_TIME_KING",
+      "messages": [
+        {
+          "id": "first_time_king_001",
+          "text": "ركز عشان مش دايمة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_002",
+          "text": "يا عيني على الثقة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_003",
+          "text": "الملك وصل يا جدعان 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_004",
+          "text": "افرح باللحظة دي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_005",
+          "text": "أول الغيث قطرة يا كينج 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_006",
+          "text": "عاش يا ملك زمانك 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_007",
+          "text": "مين قدك النهارده؟ 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_008",
+          "text": "خدلك لقطة مع التاج 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_009",
+          "text": "يا أرض اتهدي ما عليكي قدي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_010",
+          "text": "النجم ظهر والباقي يتفرج 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_011",
+          "text": "صباح الفل على سيادة الملك 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_012",
+          "text": "التاج جه لحد عندك يا محظوظ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_013",
+          "text": "معلش يا جماعة الملك اختار نفسه 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_014",
+          "text": "مين قال إن الحظ مش بيحبك؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_king_015",
+          "text": "بداية الغرور يا رجالة 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "KING_COMEBACK",
+      "messages": [
+        {
+          "id": "king_comeback_001",
+          "text": "الكينج طول عمره كينج يا كيييينج 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_002",
+          "text": "رجعنا لأصلنا يا رجالة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_003",
+          "text": "التاج رجع لصاحبه 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_004",
+          "text": "كنتوا فاكرينها خلصت؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_005",
+          "text": "الكبير كبير مهما حصل 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_006",
+          "text": "عودة الملك المنتظرة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_007",
+          "text": "مكانك محفوظ يا باشا 🔥",
+          "emoji": "🔥",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_008",
+          "text": "خدوا بالكم.. الكينج صحي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_009",
+          "text": "رجعنا نعلمكم الأصول 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_010",
+          "text": "الغياب كان استراحة محارب 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_011",
+          "text": "محدش ياخد مكانك يا معلم 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_012",
+          "text": "أهو رجعنا تاني للمكان الطبيعي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_013",
+          "text": "كان اختبار ليكم بس 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "king_comeback_014",
+          "text": "الملك رجع من الإجازة 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "STILL_KING",
+      "messages": [
+        {
+          "id": "still_king_001",
+          "text": "التاج مش بيتساب بسهولة 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "still_king_002",
+          "text": "محدش عارف يقرب منك 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_003",
+          "text": "احتكرنا المركز الأول يا باشا 🔥",
+          "emoji": "🔥",
+          "enabled": true
+        },
+        {
+          "id": "still_king_004",
+          "text": "هو فيه حد بيلعب معانا أصلًا؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_005",
+          "text": "وسعوا الطريق للملك 👑",
+          "emoji": "👑",
+          "enabled": true
+        },
+        {
+          "id": "still_king_006",
+          "text": "لسه مفيش منافسة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_007",
+          "text": "المركز الأول بقى ملكية خاصة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_008",
+          "text": "حرام عليكم سيبوا فرصة للباقيين 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_009",
+          "text": "واضح إننا هنحتاج منافسين جدد 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_010",
+          "text": "التاج بقى جزء من اللبس 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "still_king_011",
+          "text": "محدش لمس العرش لحد دلوقتي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_king_012",
+          "text": "سيادة الملك في اجتماع حاليًا 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "FIRST_TIME_KOOZ",
+      "messages": [
+        {
+          "id": "first_time_kooz_001",
+          "text": "على الله حكايته 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_002",
+          "text": "حبه فوق حبه تحت 💃",
+          "emoji": "💃",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_003",
+          "text": "يا ساتر يا رب 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_004",
+          "text": "لسه المشوار طويل يا بطل 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_005",
+          "text": "الدلو اتملأ بدري أوي 🪣",
+          "emoji": "🪣",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_006",
+          "text": "شد حيلك يا نجم.. لسه فيه أمل 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_007",
+          "text": "مش كل الناس بتكسب يعني 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_008",
+          "text": "خدها رياضة يا معلم 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_009",
+          "text": "يا خسارة التعب يا رجالة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_010",
+          "text": "المركز ده محتاج صبر 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_011",
+          "text": "أول خطوة في طريق المجد... بس بالعكس 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_012",
+          "text": "إنت لسه بتسخن صح؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_013",
+          "text": "المهم المشاركة يا بطل 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_014",
+          "text": "ربنا يعوض عليك في الجولة الجاية 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_015",
+          "text": "مش كل يوم عيد يا نجم 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "first_time_kooz_016",
+          "text": "الدلو اختارك من بين الكل 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "STILL_KOOZ",
+      "messages": [
+        {
+          "id": "still_kooz_001",
+          "text": "الكوز مقيم معانا 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_002",
+          "text": "واضح إنك حبيت المكان 🤣",
+          "emoji": "🤣",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_003",
+          "text": "حجزت المركز ومش راضي تمشي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_004",
+          "text": "ده بقى مكانك المفضل؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_005",
+          "text": "بنحاول نطلعك والله 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_006",
+          "text": "المركز الأخير عامل معاك واجب 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_007",
+          "text": "التغيير مطلوب يا نجم 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_008",
+          "text": "إنت عامل اشتراك سنوي هنا؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_009",
+          "text": "الكرسي اتحجز باسمك 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_010",
+          "text": "مفيش نية للتغيير؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_011",
+          "text": "بقالك كتير في الضيافة يا باشا 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_012",
+          "text": "الكوز بقى جزء من شخصيتك 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_013",
+          "text": "محتاجين نعملك إقامة دائمة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "still_kooz_014",
+          "text": "شكلك مش ناوي تسيب العرش ده 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "KOOZ_COMEBACK",
+      "messages": [
+        {
+          "id": "kooz_comeback_001",
+          "text": "رجعنا تاني لنقطة الصفر 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_002",
+          "text": "وحشتنا يا كوز 🪣",
+          "emoji": "🪣",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_003",
+          "text": "مفيش فايدة يا جدعان 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_004",
+          "text": "كنت فاكر إنك هتنجو؟ 🤣",
+          "emoji": "🤣",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_005",
+          "text": "الدلو بينادي عليك 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_006",
+          "text": "رجعت لحضن الكوز تاني 🥲",
+          "emoji": "🥲",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_007",
+          "text": "رجوع بعد غياب طويل... 5 دقايق 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_008",
+          "text": "رجعت للمكان اللي بتحبه 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_009",
+          "text": "الكوز مش بينسى ولاده 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "kooz_comeback_010",
+          "text": "مهما تبعد.. بترجع 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "LAST_TO_FIRST",
+      "messages": [
+        {
+          "id": "last_to_first_001",
+          "text": "إيه التحول الدرامي ده؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "ONE_POINT_LOST_FIRST",
+      "messages": [
+        {
+          "id": "one_point_lost_first_001",
+          "text": "نقطة واحدة؟ يا خسارة 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "FIRST_TO_LAST",
+      "messages": [
+        {
+          "id": "first_to_last_001",
+          "text": "من القمة للقاع في لمح البصر 🤣",
+          "emoji": "🤣",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "ESCAPED_KOOZ",
+      "messages": [
+        {
+          "id": "escaped_kooz_001",
+          "text": "أخيرًا شوفنا وشك يا باشا 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "NEGATIVE_TO_POSITIVE",
+      "messages": [
+        {
+          "id": "negative_to_positive_001",
+          "text": "بعد ما كنت مديون رجعت تاني 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "REACHED_TARGET",
+      "messages": [
+        {
+          "id": "reached_target_001",
+          "text": "حد يجيب التاج.. الملك وصل 👑",
+          "emoji": "👑",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "EXCEEDED_TARGET",
+      "messages": [
+        {
+          "id": "exceeded_target_001",
+          "text": "إنت مش بتلعب.. إنت بتنتقم 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "OVERTAKEN_PLAYER",
+      "messages": [
+        {
+          "id": "overtaken_player_001",
+          "text": "معلش يا نجم الدور عليك 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "LOST_TWO_RANKS",
+      "messages": [
+        {
+          "id": "lost_two_ranks_001",
+          "text": "نزلة حرة يا كابتن 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "GAINED_THREE_RANKS",
+      "messages": [
+        {
+          "id": "gained_three_ranks_001",
+          "text": "إيه الصاروخ ده؟ 🚀",
+          "emoji": "🚀",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "TIED_FIRST",
+      "messages": [
+        {
+          "id": "tied_first_001",
+          "text": "المنافسة بدأت تسخن 🔥",
+          "emoji": "🔥",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "ALL_PLAYERS_NEGATIVE",
+      "messages": [
+        {
+          "id": "all_players_negative_001",
+          "text": "إحنا بنلعب دومنة ولا بنسدد ديون؟ 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "EXTREMELY_NEGATIVE_SCORE",
+      "messages": [
+        {
+          "id": "extremely_negative_score_001",
+          "text": "الرقم ده محتاج محامي 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "LOST_LONG_STANDING_FIRST",
+      "messages": [
+        {
+          "id": "lost_long_standing_first_001",
+          "text": "لكل بداية نهاية يا ملك 😂",
+          "emoji": "😂",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "MAJOR_COMEBACK",
+      "messages": [
+        {
+          "id": "major_comeback_001",
+          "text": "رجوع الأبطال يا رجالة 🏆",
+          "emoji": "🏆",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "GENERAL_HUMOR",
+      "messages": [
+        {
+          "id": "general_humor_001",
+          "text": "يا عم صلي على النبي 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_002",
+          "text": "إيه الحلاوة دي يا نجم 😎",
+          "emoji": "😎",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_003",
+          "text": "الموضوع خرج عن السيطرة 🤣",
+          "emoji": "🤣",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_004",
+          "text": "حد يلحق المنافسة 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_005",
+          "text": "يا جماعة فيه حد صاحي هنا؟ 🥱",
+          "emoji": "🥱",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_006",
+          "text": "اللي جاي أصعب يا رجالة 🔥",
+          "emoji": "🔥",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_007",
+          "text": "مش كل اللي يضحك يكسب 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_008",
+          "text": "العب على قدك يا معلم 😏",
+          "emoji": "😏",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_009",
+          "text": "يا خبر أبيض على اللي بيحصل 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_010",
+          "text": "المنافسة ولعت 🔥",
+          "emoji": "🔥",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_011",
+          "text": "فيه ناس مش جاية تهزر 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_012",
+          "text": "يا ترى النهاية على مين؟ 👀",
+          "emoji": "👀",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_013",
+          "text": "اللي بيضحك في الأول مش شرط يضحك في الآخر 😂",
+          "emoji": "😂",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_014",
+          "text": "استنوا لسه الحكاية مخلصتش 🎬",
+          "emoji": "🎬",
+          "enabled": true
+        },
+        {
+          "id": "general_humor_015",
+          "text": "يا جماعة إحنا في فيلم ولا إيه؟ 🍿",
+          "emoji": "🍿",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
