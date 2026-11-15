@@ -251,9 +251,14 @@ class GameViewModelTest {
 
             viewModel.onPrimaryAction(PrimaryAction.END_ROUND)
 
-            val after = expectMostRecentItem().game()
-            assertEquals(2, after.roundNumber)
-            assertEquals(40, after.players.first().score)
+            val after = expectMostRecentItem() as GameUiState.Playing
+            assertEquals(2, after.game.roundNumber)
+            assertEquals(40, after.game.players.first().score)
+            // The screen opens the results of round 1 once, then the request is cleared.
+            assertEquals(1, after.endedRound)
+
+            viewModel.onRoundResultsShown()
+            assertEquals(null, (awaitItem() as GameUiState.Playing).endedRound)
         }
     }
 

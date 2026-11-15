@@ -13,8 +13,14 @@ object Motion {
     /** Everyday feedback: score count-up, scale pop, sheets. */
     const val QUICK_MS = 250
 
+    /** A screen sliding up from the bottom, like the round results. */
+    const val SHEET_MS = 350
+
     /** Ranking changes: KING / KOOZ badges, card highlights. */
     const val RANKING_MS = 350
+
+    /** Scores counting up from zero on the round results. */
+    const val COUNT_UP_MS = 600
 
     /** How long a floating +N / -N label stays on screen. */
     const val FLOATING_LABEL_MS = 900

@@ -43,15 +43,17 @@ class GameViewModel @Inject constructor(
 
     private val scoreEntry = MutableStateFlow<ScoreEntryUi?>(null)
     private val targetEdit = MutableStateFlow<TargetEditUi?>(null)
+    private val endedRound = MutableStateFlow<Int?>(null)
     private var endRoundJob: Job? = null
+
+    private val screenState = combine(scoreEntry, targetEdit, endedRound, ::ScreenState)
 
     val uiState: StateFlow<GameUiState> = combine(
         observeActiveGame(),
         music.gameplayState,
         music.settings,
-        scoreEntry,
-        targetEdit,
-    ) { snapshot, musicState, musicSettings, entry, target ->
+        screenState,
+    ) { snapshot, musicState, musicSettings, screen ->
         if (snapshot == null) {
             GameUiState.NoActiveGame
         } else {
@@ -61,8 +63,9 @@ class GameViewModel @Inject constructor(
                     visible = musicSettings.gameplayEnabled,
                     playing = musicState == GameplayMusicState.PLAYING,
                 ),
-                scoreEntry = entry,
-                targetEdit = target,
+                scoreEntry = screen.scoreEntry,
+                targetEdit = screen.targetEdit,
+                endedRound = screen.endedRound,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
@@ -142,7 +145,14 @@ class GameViewModel @Inject constructor(
 
     private fun endCurrentRound() {
         if (endRoundJob?.isActive == true) return
-        endRoundJob = viewModelScope.launch { endRound() }
+        endRoundJob = viewModelScope.launch {
+            val result = endRound()
+            if (result is Outcome.Success) endedRound.value = result.value
+        }
+    }
+
+    fun onRoundResultsShown() {
+        endedRound.value = null
     }
 
     /** The score is written first; the card animates when the new total arrives from the database. */
@@ -162,6 +172,9 @@ class GameViewModel @Inject constructor(
             }
         }
     }
+
+    /** What only this screen knows: the open sheet or dialog and a round that was just ended. */
+    private data class ScreenState(val scoreEntry: ScoreEntryUi?, val targetEdit: TargetEditUi?, val endedRound: Int?)
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

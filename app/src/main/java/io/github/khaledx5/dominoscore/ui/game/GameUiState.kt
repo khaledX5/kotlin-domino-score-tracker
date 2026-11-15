@@ -18,6 +18,8 @@ sealed interface GameUiState {
         val music: MusicButtonUi,
         val scoreEntry: ScoreEntryUi? = null,
         val targetEdit: TargetEditUi? = null,
+        /** Set once a round was ended here: the screen opens its results, then clears it. */
+        val endedRound: Int? = null,
     ) : GameUiState
 }
 

@@ -57,14 +57,23 @@ import io.github.khaledx5.dominoscore.ui.theme.Spacing
 fun GameScreen(
     onBack: () -> Unit,
     onGameClose: () -> Unit,
+    onShowRoundResults: (roundNumber: Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnGameClose by rememberUpdatedState(onGameClose)
+    val currentOnShowRoundResults by rememberUpdatedState(onShowRoundResults)
 
     LaunchedEffect(state) {
         if (state == GameUiState.NoActiveGame) currentOnGameClose()
+    }
+    val endedRound = (state as? GameUiState.Playing)?.endedRound
+    LaunchedEffect(endedRound) {
+        if (endedRound != null) {
+            currentOnShowRoundResults(endedRound)
+            viewModel.onRoundResultsShown()
+        }
     }
 
     when (val current = state) {

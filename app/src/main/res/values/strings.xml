@@ -39,6 +39,9 @@
     <string name="error_target_unchanged">That is already the target</string>
     <string name="game_end_round">End round</string>
     <string name="game_end_game">End game</string>
+    <string name="round_results_title">End of round %1$d</string>
+    <string name="round_results_body">Scores carry on into round %1$d.</string>
+    <string name="round_results_continue">Continue game</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>
