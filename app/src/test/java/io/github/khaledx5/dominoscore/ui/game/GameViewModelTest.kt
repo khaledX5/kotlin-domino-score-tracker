@@ -399,11 +399,13 @@ class GameViewModelTest {
             viewModel.selectWinner(mona.id.value)
             viewModel.confirmWinner()
 
-            assertEquals(GameUiState.NoActiveGame, expectMostRecentItem())
+            // Not "the game is gone": the screen opens the celebration of this game.
+            val finished = games.allGames().single()
+            assertEquals(GameUiState.Finished(finished.id.value), expectMostRecentItem())
+            assertEquals(GameStatus.COMPLETED, finished.status)
+            assertEquals(mona.id, finished.winnerId)
         }
-        val finished = games.allGames().single()
-        assertEquals(GameStatus.COMPLETED, finished.status)
-        assertEquals(mona.id, finished.winnerId)
+        assertEquals(listOf(MusicTrack.WINNER), recordingAudio.started)
     }
 
     @Test

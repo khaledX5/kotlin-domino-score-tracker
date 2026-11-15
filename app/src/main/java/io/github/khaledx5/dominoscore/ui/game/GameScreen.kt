@@ -56,15 +56,21 @@ fun GameScreen(
     onBack: () -> Unit,
     onGameClose: () -> Unit,
     onShowRoundResults: (roundNumber: Int) -> Unit,
+    onCelebrate: (gameId: Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnGameClose by rememberUpdatedState(onGameClose)
     val currentOnShowRoundResults by rememberUpdatedState(onShowRoundResults)
+    val currentOnCelebrate by rememberUpdatedState(onCelebrate)
 
     LaunchedEffect(state) {
-        if (state == GameUiState.NoActiveGame) currentOnGameClose()
+        when (val current = state) {
+            GameUiState.NoActiveGame -> currentOnGameClose()
+            is GameUiState.Finished -> currentOnCelebrate(current.gameId)
+            else -> Unit
+        }
     }
     val endedRound = (state as? GameUiState.Playing)?.endedRound
     LaunchedEffect(endedRound) {
@@ -75,7 +81,7 @@ fun GameScreen(
     }
 
     when (val current = state) {
-        GameUiState.Loading, GameUiState.NoActiveGame -> Box(
+        GameUiState.Loading, GameUiState.NoActiveGame, is GameUiState.Finished -> Box(
             modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {

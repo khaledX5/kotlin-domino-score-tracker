@@ -29,6 +29,9 @@ interface GameRepository {
 
     suspend fun findActiveGame(): Game?
 
+    /** Any game, active or finished, or null when there is no game with [gameId]. */
+    suspend fun findGame(gameId: GameId): Game?
+
     /** The completed rounds (by number) and the score log (in the order it was written) of [gameId]. */
     suspend fun findScoreLog(gameId: GameId): ScoreLog
 

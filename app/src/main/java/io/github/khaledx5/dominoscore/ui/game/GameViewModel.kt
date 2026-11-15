@@ -52,6 +52,9 @@ class GameViewModel @Inject constructor(
     private val targetEdit = MutableStateFlow<TargetEditUi?>(null)
     private val endedRound = MutableStateFlow<Int?>(null)
     private val winnerPick = MutableStateFlow<WinnerPickUi?>(null)
+
+    /** While the winner is being saved the game disappears from the database: that is not "the game is gone". */
+    private val finishing = MutableStateFlow<Finish>(Finish.None)
     private var endRoundJob: Job? = null
 
     private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, ::ScreenState)
@@ -60,9 +63,14 @@ class GameViewModel @Inject constructor(
         observeActiveGame().withMessages(observeMessages),
         music.settings,
         screenState,
-    ) { (snapshot, messages), musicSettings, screen ->
+        finishing,
+    ) { (snapshot, messages), musicSettings, screen, finish ->
         if (snapshot == null) {
-            GameUiState.NoActiveGame
+            when (finish) {
+                is Finish.Done -> GameUiState.Finished(finish.gameId)
+                Finish.Saving -> GameUiState.Loading
+                Finish.None -> GameUiState.NoActiveGame
+            }
         } else {
             GameUiState.Playing(
                 game = snapshot.toGameUi(messages),
@@ -167,14 +175,25 @@ class GameViewModel @Inject constructor(
         winnerPick.value = null
     }
 
-    /** The game ends only here, with the player the table picked. */
+    /**
+     * The game ends only here, with the player the table picked. Then the gameplay tune stops, the
+     * winner tune plays if it is switched on, and the screen opens the celebration.
+     */
     fun confirmWinner() {
         val pick = winnerPick.value ?: return
         val winnerId = pick.selectedId ?: return
+        val gameId = (uiState.value as? GameUiState.Playing)?.game?.gameId ?: return
+        finishing.value = Finish.Saving
         viewModelScope.launch {
-            // Success ends the game; any refusal (the target was raised meanwhile) just closes the dialog.
-            endGameWith(PlayerId(winnerId))
+            val result = endGameWith(PlayerId(winnerId))
             winnerPick.value = null
+            if (result is Outcome.Success) {
+                music.celebrateWinner()
+                finishing.value = Finish.Done(gameId)
+            } else {
+                // Refused (the target was raised meanwhile): the dialog closes and the game goes on.
+                finishing.value = Finish.None
+            }
         }
     }
 
@@ -211,6 +230,14 @@ class GameViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private sealed interface Finish {
+        data object None : Finish
+
+        data object Saving : Finish
+
+        data class Done(val gameId: Long) : Finish
     }
 
     /** What only this screen knows: the open sheet or dialog and a round that was just ended. */

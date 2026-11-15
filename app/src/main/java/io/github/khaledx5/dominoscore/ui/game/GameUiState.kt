@@ -16,6 +16,9 @@ sealed interface GameUiState {
     /** The game ended or was replaced: the screen closes itself. */
     data object NoActiveGame : GameUiState
 
+    /** The table confirmed the winner of [gameId]: the screen opens the celebration. */
+    data class Finished(val gameId: Long) : GameUiState
+
     data class Playing(
         val game: GameUi,
         val music: MusicButtonUi,
@@ -34,6 +37,7 @@ sealed interface GameUiState {
 @Immutable
 data class GameUi(
     val roundNumber: Int,
+    val gameId: Long = 0,
     val target: Int,
     val players: List<StandingUi>,
     val standings: List<StandingUi>,
@@ -89,6 +93,7 @@ internal fun GameSnapshot.toGameUi(messages: Map<PlayerId, RankingMessage> = emp
     val standings = toStandings(messages)
     return GameUi(
         roundNumber = checkNotNull(game.currentRound) { "An active game always has a round in progress" }.number,
+        gameId = game.id.value,
         target = game.target.value,
         players = standings.sortedBy { standing -> game.players.indexOfFirst { it.id.value == standing.playerId } },
         standings = standings,

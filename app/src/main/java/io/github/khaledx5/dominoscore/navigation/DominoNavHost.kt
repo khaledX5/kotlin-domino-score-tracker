@@ -15,6 +15,7 @@ import io.github.khaledx5.dominoscore.ui.game.GameScreen
 import io.github.khaledx5.dominoscore.ui.home.HomeScreen
 import io.github.khaledx5.dominoscore.ui.results.RoundResultsScreen
 import io.github.khaledx5.dominoscore.ui.setup.SetupScreen
+import io.github.khaledx5.dominoscore.ui.summary.SummaryScreen
 import io.github.khaledx5.dominoscore.ui.theme.Motion
 import kotlinx.serialization.Serializable
 
@@ -27,6 +28,10 @@ data object SetupDestination
 
 @Serializable
 data object GameDestination
+
+/** The celebration and final rankings of a finished game. */
+@Serializable
+data class SummaryDestination(val gameId: Long)
 
 /** The standings after [roundNumber] ended. The game itself goes on, so Continue just returns to it. */
 @Serializable
@@ -54,7 +59,13 @@ fun DominoNavHost(modifier: Modifier = Modifier, navController: NavHostControlle
                 onBack = { navController.popBackStack() },
                 onGameClose = { navController.popBackStack(HomeDestination, inclusive = false) },
                 onShowRoundResults = { navController.navigate(RoundResultsDestination(it)) },
+                onCelebrate = { gameId ->
+                    navController.navigate(SummaryDestination(gameId)) { popUpTo(HomeDestination) }
+                },
             )
+        }
+        composable<SummaryDestination>(enterTransition = { fadeIn(tween(Motion.SHEET_MS)) }) {
+            SummaryScreen(onClose = { navController.popBackStack(HomeDestination, inclusive = false) })
         }
         composable<RoundResultsDestination>(
             enterTransition = { slideInVertically(tween(Motion.SHEET_MS)) { it } + fadeIn() },

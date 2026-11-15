@@ -44,6 +44,9 @@
     <string name="winner_dialog_body">The top score is picked. Any player who reached the target can win, by your house rules.</string>
     <string name="winner_dialog_tie">It is a tie at the top. Pick the winner.</string>
     <string name="winner_dialog_confirm">Confirm winner</string>
+    <string name="summary_trophy" translatable="false">🏆</string>
+    <string name="summary_wins">%1$s wins!</string>
+    <string name="summary_close">Close</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>

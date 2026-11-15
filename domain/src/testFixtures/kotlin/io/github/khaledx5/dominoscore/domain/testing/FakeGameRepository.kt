@@ -51,6 +51,8 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun findActiveGame(): Game? = games.value.firstOrNull { it.isActive }
 
+    override suspend fun findGame(gameId: GameId): Game? = games.value.firstOrNull { it.id == gameId }
+
     override suspend fun findScoreLog(gameId: GameId): ScoreLog =
         ScoreLog(roundsByGame[gameId].orEmpty().toList(), operationsByGame[gameId].orEmpty().toList())
 
