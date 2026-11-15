@@ -1,8 +1,13 @@
 package io.github.khaledx5.dominoscore.audio
 
+import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
+import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.testing.FakeMusicSettingsStore
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.RecordingAudio
+import io.github.khaledx5.dominoscore.testing.testClock
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -16,8 +21,10 @@ class MusicControllerTest {
 
     private val audio = RecordingAudio()
     private val store = FakeMusicSettingsStore()
+    private val games = FakeGameRepository()
     private val scope = TestScope(mainDispatcherRule.dispatcher)
-    private val controller = MusicController(audio.manager, store, scope)
+    private val controller = MusicController(audio.manager, store, ObserveActiveGameUseCase(games), scope)
+    private val startGame = StartGameUseCase(games, testClock)
 
     @Test
     fun theMusicButtonCyclesPlayPauseResume() {
@@ -83,5 +90,25 @@ class MusicControllerTest {
         controller.toggleGameplayMusic()
 
         assertEquals(0.3f, audio.volume, 0.001f)
+    }
+
+    @Test
+    fun replacingTheGameStopsItsMusic() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        controller.toggleGameplayMusic()
+
+        startGame(targetScore = 100, playerNames = listOf("Ali", "Sara"), replaceActiveGame = true)
+
+        assertEquals(GameplayMusicState.STOPPED, controller.gameplayState.value)
+    }
+
+    @Test
+    fun theMusicKeepsPlayingWhileTheSameGameChanges() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        controller.toggleGameplayMusic()
+
+        EndRoundUseCase(games, testClock)()
+
+        assertEquals(GameplayMusicState.PLAYING, controller.gameplayState.value)
     }
 }

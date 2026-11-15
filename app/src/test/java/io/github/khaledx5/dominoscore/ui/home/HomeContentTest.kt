@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import org.junit.Rule
 import org.junit.Test
@@ -44,7 +45,9 @@ class HomeContentTest {
         )
 
         composeRule.setContent {
-            DominoTheme { HomeContent(state = HomeUiState.Ready(game), onNewGame = {}, onOpenSettings = {}) }
+            DominoTheme {
+                HomeContent(state = HomeUiState.Ready(game), onNewGame = {}, onContinueGame = {}, onOpenSettings = {})
+            }
         }
 
         composeRule.onNodeWithText("Game in progress").performScrollTo().assertIsDisplayed()
@@ -61,7 +64,8 @@ class HomeContentTest {
     fun hidesTheCardWhenNoGameIsInProgress() {
         composeRule.setContent {
             DominoTheme {
-                HomeContent(state = HomeUiState.Ready(activeGame = null), onNewGame = {}, onOpenSettings = {})
+                HomeContent(state = HomeUiState.Ready(activeGame = null), onNewGame = {
+                }, onContinueGame = {}, onOpenSettings = {})
             }
         }
 

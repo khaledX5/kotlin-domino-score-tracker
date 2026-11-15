@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -35,14 +37,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
-import io.github.khaledx5.dominoscore.ui.components.KingBadge
-import io.github.khaledx5.dominoscore.ui.components.KoozBadge
+import io.github.khaledx5.dominoscore.ui.components.StandingRow
+import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @Composable
-fun ActiveGameCard(game: ActiveGameUi, modifier: Modifier = Modifier) {
+fun ActiveGameCard(game: ActiveGameUi, onContinue: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -66,95 +68,17 @@ fun ActiveGameCard(game: ActiveGameUi, modifier: Modifier = Modifier) {
             game.standings.forEach { standing ->
                 StandingRow(standing)
             }
-        }
-    }
-}
-
-/**
- * One line of the standings. The KING row gets a gold highlight that fades in and out as the
- * title moves between players; the badges appear and disappear with a short, quiet transition.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun StandingRow(standing: StandingUi, modifier: Modifier = Modifier) {
-    val gameColors = DominoThemeExtras.gameColors
-    val highlight by animateColorAsState(
-        targetValue = if (standing.isKing) gameColors.kingContainer else Color.Transparent,
-        label = "kingHighlight",
-    )
-    val border by animateColorAsState(
-        targetValue = if (standing.isKing) gameColors.king else Color.Transparent,
-        label = "kingBorder",
-    )
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = highlight,
-        border = BorderStroke(1.dp, border),
-    ) {
-        Row(
-            modifier = Modifier.padding(Spacing.s),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-        ) {
-            Text(
-                text = leadingMark(standing),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(min = 28.dp),
-            )
-            Box(
+            Button(
+                onClick = onContinue,
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
-                    .size(10.dp)
-                    .background(gameColors.players[standing.colorIndex % gameColors.players.size], CircleShape),
-            )
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(
-                    text = standing.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                ) {
-                    AnimatedVisibility(visible = standing.isKing, enter = BadgeEnter, exit = BadgeExit) { KingBadge() }
-                    AnimatedVisibility(visible = standing.isKooz, enter = BadgeEnter, exit = BadgeExit) { KoozBadge() }
-                    if (standing.qualified) {
-                        QualifiedBadge()
-                    }
-                }
+                    .fillMaxWidth()
+                    .height(Spacing.primaryButtonHeight),
+            ) {
+                Text(stringResource(R.string.home_continue_game), style = MaterialTheme.typography.titleMedium)
             }
-            Text(
-                text = standing.score.toString(),
-                style = MaterialTheme.typography.headlineSmall,
-            )
         }
     }
-}
-
-private val BadgeEnter = fadeIn() + expandVertically()
-private val BadgeExit = fadeOut() + shrinkVertically()
-
-@Composable
-private fun leadingMark(standing: StandingUi): String = when {
-    standing.isKing -> stringResource(R.string.rank_king_mark)
-    standing.isKooz -> stringResource(R.string.rank_kooz_mark)
-    else -> stringResource(R.string.rank_number, standing.rank)
-}
-
-@Composable
-private fun QualifiedBadge(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.qualified),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier
-            .background(DominoThemeExtras.gameColors.qualifiedContainer, MaterialTheme.shapes.extraSmall)
-            .padding(horizontal = Spacing.s, vertical = Spacing.xs / 2),
-    )
 }
 
 @Preview
@@ -162,7 +86,8 @@ private fun QualifiedBadge(modifier: Modifier = Modifier) {
 private fun ActiveGameCardPreview() {
     DominoTheme {
         ActiveGameCard(
-            ActiveGameUi(
+            onContinue = {},
+            game = ActiveGameUi(
                 roundNumber = 3,
                 target = 150,
                 standings = listOf(

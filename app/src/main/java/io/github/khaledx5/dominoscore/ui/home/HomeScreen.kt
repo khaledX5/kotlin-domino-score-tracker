@@ -33,13 +33,19 @@ import io.github.khaledx5.dominoscore.ui.settings.SettingsSheet
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @Composable
-fun HomeScreen(onNewGame: () -> Unit, modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    onNewGame: () -> Unit,
+    onContinueGame: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
     HomeContent(
         state = state,
         onNewGame = onNewGame,
+        onContinueGame = onContinueGame,
         onOpenSettings = { showSettings = true },
         modifier = modifier,
     )
@@ -49,7 +55,13 @@ fun HomeScreen(onNewGame: () -> Unit, modifier: Modifier = Modifier, viewModel: 
 }
 
 @Composable
-fun HomeContent(state: HomeUiState, onNewGame: () -> Unit, onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeContent(
+    state: HomeUiState,
+    onNewGame: () -> Unit,
+    onContinueGame: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(modifier = modifier, containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
         Column(
             modifier = Modifier
@@ -72,7 +84,7 @@ fun HomeContent(state: HomeUiState, onNewGame: () -> Unit, onOpenSettings: () ->
             HomeHeader()
             when (state) {
                 HomeUiState.Loading -> CircularProgressIndicator()
-                is HomeUiState.Ready -> state.activeGame?.let { ActiveGameCard(game = it) }
+                is HomeUiState.Ready -> state.activeGame?.let { ActiveGameCard(game = it, onContinue = onContinueGame) }
             }
             Button(
                 onClick = onNewGame,

@@ -1,11 +1,15 @@
 package io.github.khaledx5.dominoscore.audio
 
 import io.github.khaledx5.dominoscore.di.ApplicationScope
+import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -18,6 +22,7 @@ import kotlinx.coroutines.launch
 class MusicController @Inject constructor(
     private val audio: GameAudioManager,
     settingsStore: MusicSettingsStore,
+    observeActiveGame: ObserveActiveGameUseCase,
     @param:ApplicationScope scope: CoroutineScope,
 ) {
     val settings: StateFlow<MusicSettings> = settingsStore.settings
@@ -31,6 +36,14 @@ class MusicController @Inject constructor(
                 audio.setVolume(current.volume)
                 if (!current.gameplayEnabled) audio.stopGameplayMusic()
             }
+        }
+        // The game ended or another one replaced it: its music stops with it.
+        scope.launch {
+            observeActiveGame()
+                .map { it?.game?.id }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { audio.stopGameplayMusic() }
         }
     }
 

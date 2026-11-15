@@ -14,6 +14,15 @@
     <string name="badge_separator" translatable="false">–</string>
     <string name="kooz_caption" translatable="false">على الله حكايته 😂</string>
     <string name="home_new_game">New game</string>
+    <string name="home_continue_game">Continue game</string>
+    <string name="game_round">Round %1$d</string>
+    <plurals name="points_value">
+        <item quantity="one">%1$d pt</item>
+        <item quantity="other">%1$d pts</item>
+    </plurals>
+    <string name="game_music_play">Play music</string>
+    <string name="game_music_pause">Pause music</string>
+    <string name="game_live_ranking">Live ranking</string>
     <string name="navigate_back">Back</string>
     <string name="cancel">Cancel</string>
     <string name="points_suffix">pts</string>
