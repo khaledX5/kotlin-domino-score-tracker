@@ -60,6 +60,7 @@ import io.github.khaledx5.dominoscore.ui.components.ChoiceTile
 import io.github.khaledx5.dominoscore.ui.components.SectionCard
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
+import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @Composable
 fun SetupScreen(
@@ -132,13 +133,13 @@ fun SetupContent(
             Button(
                 onClick = onStart,
                 enabled = !state.isStarting,
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
                     .fillMaxWidth()
                     // Stays above the gesture bar, and above the keyboard while a name is typed.
                     .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .height(56.dp),
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.l)
+                    .height(Spacing.primaryButtonHeight),
             ) {
                 if (state.isStarting) {
                     CircularProgressIndicator(
@@ -156,8 +157,8 @@ fun SetupContent(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = Spacing.xl, vertical = Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
             TargetSection(state, onSelectPreset, onSelectCustom, onCustomTargetChange)
             PlayerCountSection(playerCount = state.playerCount, onPlayerCountChange = onPlayerCountChange)
@@ -181,8 +182,8 @@ private fun TargetSection(
         modifier = modifier,
     ) {
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             SetupUiState.TARGET_PRESETS.forEach { preset ->
                 ChoiceTile(
@@ -222,7 +223,7 @@ private fun PlayerCountSection(playerCount: Int, onPlayerCountChange: (Int) -> U
         iconRes = R.drawable.ic_group,
         modifier = modifier,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             Game.PLAYER_COUNT.forEach { count ->
                 ChoiceTile(
                     selected = count == playerCount,

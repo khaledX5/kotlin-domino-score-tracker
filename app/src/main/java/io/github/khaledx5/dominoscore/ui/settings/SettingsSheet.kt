@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.components.ChoiceTile
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
+import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,8 +44,8 @@ fun SettingsSheet(
         Column(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.xxl),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
             Text(
                 text = stringResource(R.string.settings_title),
@@ -58,7 +59,7 @@ fun SettingsSheet(
 
 @Composable
 fun LanguageOptions(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(
             text = stringResource(R.string.settings_language),
             style = MaterialTheme.typography.labelLarge,
@@ -69,7 +70,7 @@ fun LanguageOptions(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modi
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             AppLanguage.entries.forEach { language ->
                 ChoiceTile(

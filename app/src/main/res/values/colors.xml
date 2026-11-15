@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_background">#585A91</color>
+    <!-- Midnight Teal, for the launcher icon and the window behind the first frame. -->
+    <color name="launcher_background">#101B2D</color>
+    <color name="window_background">#F5F7FA</color>
 </resources>

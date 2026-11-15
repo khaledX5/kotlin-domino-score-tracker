@@ -25,17 +25,18 @@ import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
+import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @Composable
 fun ActiveGameCard(game: ActiveGameUi, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(Spacing.xl),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             Text(
                 text = stringResource(R.string.home_active_game_title),
@@ -60,7 +61,7 @@ private fun StandingRow(standing: StandingUi, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
         Text(
             text = stringResource(R.string.rank_number, standing.rank),
@@ -83,10 +84,10 @@ private fun StandingRow(standing: StandingUi, modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(R.string.qualified),
                 style = MaterialTheme.typography.labelMedium,
-                color = gameColors.qualified,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
-                    .background(gameColors.qualifiedContainer, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                    .background(gameColors.qualifiedContainer, MaterialTheme.shapes.extraSmall)
+                    .padding(horizontal = Spacing.s, vertical = 2.dp),
             )
         }
         Text(

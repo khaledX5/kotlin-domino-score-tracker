@@ -26,11 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.settings.SettingsSheet
+import io.github.khaledx5.dominoscore.ui.theme.Spacing
 
 @Composable
 fun HomeScreen(onNewGame: () -> Unit, modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
@@ -56,16 +56,16 @@ fun HomeContent(state: HomeUiState, onNewGame: () -> Unit, onOpenSettings: () ->
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(
                         painter = painterResource(R.drawable.ic_settings),
                         contentDescription = stringResource(R.string.settings_open),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
             }
@@ -76,10 +76,10 @@ fun HomeContent(state: HomeUiState, onNewGame: () -> Unit, onOpenSettings: () ->
             }
             Button(
                 onClick = onNewGame,
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(Spacing.primaryButtonHeight),
             ) {
                 Text(stringResource(R.string.home_new_game), style = MaterialTheme.typography.titleMedium)
             }
