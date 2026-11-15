@@ -1,5 +1,7 @@
 package io.github.khaledx5.dominoscore.domain.testing
 
+import io.github.khaledx5.dominoscore.domain.history.CompletedGame
+import io.github.khaledx5.dominoscore.domain.history.FinalStanding
 import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
@@ -21,6 +23,7 @@ import io.github.khaledx5.dominoscore.domain.rules.RankedPlayer
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -37,12 +40,13 @@ class FakeGameRepository : GameRepository {
     private val roundsByGame = mutableMapOf<GameId, MutableList<Round>>()
     private val moves = MutableStateFlow<List<Pair<GameId, ScoreMove>>>(emptyList())
     val finalStandings = mutableMapOf<GameId, List<RankedPlayer>>()
+    private val frozen = MutableStateFlow<Map<GameId, List<RankedPlayer>>>(emptyMap())
 
     /** Profiles by name key, newest last; a profile seen again moves to the end. */
     private val profiles = MutableStateFlow<List<Pair<String, Profile>>>(emptyList())
-    private val profileByPlayer = mutableMapOf<PlayerId, ProfileId>()
+    private val profileByPlayer = mutableMapOf<PlayerId, Profile>()
 
-    fun profileOf(playerId: PlayerId): ProfileId = profileByPlayer.getValue(playerId)
+    fun profileOf(playerId: PlayerId): ProfileId = profileByPlayer.getValue(playerId).id
     var writeCount = 0
         private set
 
@@ -54,6 +58,7 @@ class FakeGameRepository : GameRepository {
 
     /** Puts a game in storage directly, for tests that need a specific state. */
     fun seed(game: Game) {
+        game.players.forEach { profileByPlayer.getOrPut(it.id) { profileFor(it.name) } }
         games.update { it + game }
         nextId = maxOf(nextId, game.id.value + 1, game.players.maxOf { it.id.value } + 1)
     }
@@ -62,6 +67,12 @@ class FakeGameRepository : GameRepository {
         games.map { list -> list.firstOrNull { it.isActive } }.distinctUntilChanged()
 
     override suspend fun findActiveGame(): Game? = games.value.firstOrNull { it.isActive }
+
+    override fun observeCompletedGames(): Flow<List<CompletedGame>> = combine(games, frozen) { list, standings ->
+        list.filter { it.status == GameStatus.COMPLETED }
+            .sortedWith(compareByDescending<Game> { it.completedAt }.thenByDescending { it.id.value })
+            .map { game -> completedGame(game, standings.getValue(game.id)) }
+    }.distinctUntilChanged()
 
     override fun observeProfiles(): Flow<List<Profile>> =
         profiles.map { list -> list.map { it.second }.reversed() }.distinctUntilChanged()
@@ -90,7 +101,7 @@ class FakeGameRepository : GameRepository {
             target = newGame.target,
             status = GameStatus.ACTIVE,
             players = newGame.playerNames.mapIndexed { seat, name ->
-                newPlayer(seat, name).also { profileByPlayer[it.id] = profileIdOf(name) }
+                newPlayer(seat, name).also { profileByPlayer[it.id] = profileFor(name) }
             },
             currentRound = newRound(number = 1, startedAt = newGame.startedAt),
             startedAt = newGame.startedAt,
@@ -135,6 +146,7 @@ class FakeGameRepository : GameRepository {
             "Final standings must cover every player of game $gameId"
         }
         this.finalStandings[gameId] = finalStandings
+        frozen.update { it + (gameId to finalStandings) }
         finish(game, checkNotNull(game.currentRound).id, completedAt)
         game.copy(
             status = GameStatus.COMPLETED,
@@ -164,12 +176,33 @@ class FakeGameRepository : GameRepository {
         }
     }
 
-    private fun profileIdOf(name: PlayerName): ProfileId {
+    private fun profileFor(name: PlayerName): Profile {
         val known = profiles.value.firstOrNull { it.first == name.key }?.second
         val profile = known ?: Profile(ProfileId(nextId++), name)
         profiles.update { list -> list.filterNot { it.first == name.key } + (name.key to profile) }
-        return profile.id
+        return profile
     }
+
+    private fun completedGame(game: Game, standings: List<RankedPlayer>) = CompletedGame(
+        id = game.id,
+        target = game.target,
+        startedAt = game.startedAt,
+        completedAt = checkNotNull(game.completedAt),
+        roundCount = roundsByGame[game.id].orEmpty().size,
+        winnerId = checkNotNull(game.winnerId),
+        standings = standings.map { ranked ->
+            val player = checkNotNull(game.player(ranked.player.id))
+            FinalStanding(
+                playerId = player.id,
+                profile = profileByPlayer.getValue(player.id),
+                name = player.name,
+                score = player.score,
+                rank = ranked.rank,
+                isKing = ranked.isKing,
+                isKooz = ranked.isKooz,
+            )
+        },
+    )
 
     private fun abandonIfActive(game: Game): Game =
         if (game.isActive) game.copy(status = GameStatus.ABANDONED, currentRound = null) else game

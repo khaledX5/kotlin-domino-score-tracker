@@ -41,6 +41,10 @@ interface GameDao {
     @Query("SELECT * FROM games WHERE status != 'ACTIVE' ORDER BY started_at DESC, id DESC")
     fun observeFinishedGames(): Flow<List<GameWithDetails>>
 
+    @Transaction
+    @Query("SELECT * FROM games WHERE status = 'COMPLETED' ORDER BY completed_at DESC, id DESC")
+    fun observeCompletedGames(): Flow<List<CompletedGameRow>>
+
     @Query("SELECT * FROM games WHERE id = :gameId")
     suspend fun findGameRow(gameId: Long): GameEntity?
 

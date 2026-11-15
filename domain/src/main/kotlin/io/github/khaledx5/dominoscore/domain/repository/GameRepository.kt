@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.repository
 
+import io.github.khaledx5.dominoscore.domain.history.CompletedGame
 import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
@@ -37,6 +38,9 @@ interface GameRepository {
 
     /** Every COMPLETED or ABANDONED game, newest first, emitted again after every change. */
     fun observeFinishedGames(): Flow<List<Game>>
+
+    /** Every COMPLETED game with its frozen standings, the latest completed first, emitted again after every change. */
+    fun observeCompletedGames(): Flow<List<CompletedGame>>
 
     /**
      * Every person who sat in any game, the one seated most recently first (the latest game, then

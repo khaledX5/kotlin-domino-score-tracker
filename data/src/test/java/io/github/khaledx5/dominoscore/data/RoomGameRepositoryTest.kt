@@ -262,6 +262,37 @@ class RoomGameRepositoryTest {
     }
 
     @Test
+    fun completedGamesComeLatestFirstWithTheirFrozenStandings() = runTest {
+        val first = start("Omar", "Mona", "Ali", target = 50)
+        repository.recordScore(first.id, operation(first.round(), first.seat(2), ScoreOperationType.ADD, 60, 0, 60))
+        repository.completeRound(first.id, first.round(), t1)
+        val final = repository.findActiveGame()!!
+        repository.renamePlayer(first.id, first.seat(0), PlayerName.of("Omar K.").getOrNull()!!, t1)
+        repository.completeGame(first.id, first.seat(2), rankPlayers(final.players), t1.plusSeconds(60))
+        val abandoned = start("Sara", "Hana")
+        start("omar", "Tamer")
+        repository.recordScore(
+            abandoned.id,
+            operation(abandoned.round(), abandoned.seat(0), ScoreOperationType.ADD, 1, 0, 1),
+        )
+
+        repository.observeCompletedGames().test {
+            val game = awaitItem().single()
+            assertEquals(first.id, game.id)
+            assertEquals(2, game.roundCount)
+            assertEquals(t0, game.startedAt)
+            assertEquals(t1.plusSeconds(60), game.completedAt)
+            assertEquals("Ali", game.winner.name.value)
+            assertEquals(listOf("Ali", "Omar K.", "Mona"), game.standings.map { it.name.value })
+            assertEquals(listOf(1, 2, 2), game.standings.map { it.rank })
+            assertEquals(listOf(true, false, false), game.standings.map { it.isKing })
+            assertEquals(listOf(false, true, true), game.standings.map { it.isKooz })
+            // The profile keeps the first spelling; the standing shows the name used in that game.
+            assertEquals("Omar", game.standings[1].profile.name.value)
+        }
+    }
+
+    @Test
     fun aRenameKeepsTheProfile() = runTest {
         val game = start("Omar", "Mona")
         val profile = dao.findPlayer(game.seat(0).value)!!.profileId
