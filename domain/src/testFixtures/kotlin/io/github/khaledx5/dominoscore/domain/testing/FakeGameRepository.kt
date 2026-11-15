@@ -15,6 +15,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.repository.GameRepository
 import io.github.khaledx5.dominoscore.domain.repository.NewGame
+import io.github.khaledx5.dominoscore.domain.rules.RankedPlayer
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,7 @@ class FakeGameRepository : GameRepository {
     private val operationsByGame = mutableMapOf<GameId, MutableList<ScoreOperation>>()
     private val roundsByGame = mutableMapOf<GameId, MutableList<Round>>()
     private val moves = MutableStateFlow<List<Pair<GameId, ScoreMove>>>(emptyList())
+    val finalStandings = mutableMapOf<GameId, List<RankedPlayer>>()
     var writeCount = 0
         private set
 
@@ -110,16 +112,24 @@ class FakeGameRepository : GameRepository {
         game.copy(currentRound = newRound(number = round.number + 1, startedAt = completedAt))
     }
 
-    override suspend fun completeGame(gameId: GameId, winnerId: PlayerId, completedAt: Instant) =
-        write(gameId) { game ->
-            finish(game, checkNotNull(game.currentRound).id, completedAt)
-            game.copy(
-                status = GameStatus.COMPLETED,
-                winnerId = winnerId,
-                currentRound = null,
-                completedAt = completedAt,
-            )
+    override suspend fun completeGame(
+        gameId: GameId,
+        winnerId: PlayerId,
+        finalStandings: List<RankedPlayer>,
+        completedAt: Instant,
+    ) = write(gameId) { game ->
+        check(finalStandings.map { it.player.id }.toSet() == game.players.map { it.id }.toSet()) {
+            "Final standings must cover every player of game $gameId"
         }
+        this.finalStandings[gameId] = finalStandings
+        finish(game, checkNotNull(game.currentRound).id, completedAt)
+        game.copy(
+            status = GameStatus.COMPLETED,
+            winnerId = winnerId,
+            currentRound = null,
+            completedAt = completedAt,
+        )
+    }
 
     override suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant) =
         write(gameId) { game ->

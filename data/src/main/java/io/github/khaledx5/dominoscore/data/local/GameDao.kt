@@ -4,9 +4,11 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import io.github.khaledx5.dominoscore.data.local.entity.FinalStandingEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEventEntity
 import io.github.khaledx5.dominoscore.data.local.entity.PlayerEntity
+import io.github.khaledx5.dominoscore.data.local.entity.ProfileEntity
 import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.data.local.entity.ScoreOperationEntity
 import java.time.Instant
@@ -57,8 +59,27 @@ interface GameDao {
     @Query("SELECT * FROM game_events WHERE game_id = :gameId ORDER BY id")
     suspend fun findEvents(gameId: Long): List<GameEventEntity>
 
+    @Query("SELECT * FROM profiles WHERE name_key = :nameKey")
+    suspend fun findProfile(nameKey: String): ProfileEntity?
+
+    @Query("SELECT * FROM profiles ORDER BY id")
+    suspend fun findProfiles(): List<ProfileEntity>
+
+    @Query(
+        "SELECT final_standings.* FROM final_standings " +
+            "INNER JOIN players ON players.id = final_standings.player_id " +
+            "WHERE players.game_id = :gameId ORDER BY final_standings.rank, players.seat",
+    )
+    suspend fun findFinalStandings(gameId: Long): List<FinalStandingEntity>
+
     @Insert
     suspend fun insertGame(game: GameEntity): Long
+
+    @Insert
+    suspend fun insertProfile(profile: ProfileEntity): Long
+
+    @Insert
+    suspend fun insertFinalStandings(standings: List<FinalStandingEntity>)
 
     @Insert
     suspend fun insertPlayers(players: List<PlayerEntity>)

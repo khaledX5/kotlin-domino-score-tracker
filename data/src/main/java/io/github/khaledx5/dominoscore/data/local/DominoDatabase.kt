@@ -4,10 +4,13 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import io.github.khaledx5.dominoscore.data.local.entity.FinalStandingEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEventEntity
 import io.github.khaledx5.dominoscore.data.local.entity.PlayerEntity
 import io.github.khaledx5.dominoscore.data.local.entity.PlayerMessageEntity
+import io.github.khaledx5.dominoscore.data.local.entity.ProfileEntity
 import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.data.local.entity.ScoreOperationEntity
 
@@ -19,8 +22,10 @@ import io.github.khaledx5.dominoscore.data.local.entity.ScoreOperationEntity
         ScoreOperationEntity::class,
         GameEventEntity::class,
         PlayerMessageEntity::class,
+        ProfileEntity::class,
+        FinalStandingEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
     // v2 only adds the player_messages table, so Room can generate the migration from the exported schemas.
     autoMigrations = [AutoMigration(from = 1, to = 2)],
@@ -33,5 +38,8 @@ abstract class DominoDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "domino-score.db"
+
+        /** Hand-written migrations, for changes that need data filled in. Add them to every builder. */
+        val MIGRATIONS: Array<Migration> = arrayOf(Migration2To3)
     }
 }

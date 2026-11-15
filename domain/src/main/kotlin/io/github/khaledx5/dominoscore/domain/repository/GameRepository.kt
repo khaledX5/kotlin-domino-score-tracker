@@ -9,6 +9,7 @@ import io.github.khaledx5.dominoscore.domain.model.PlayerName
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
+import io.github.khaledx5.dominoscore.domain.rules.RankedPlayer
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 
@@ -42,7 +43,11 @@ interface GameRepository {
     /** The completed rounds (by number) and the score log (in the order it was written) of [gameId]. */
     suspend fun findScoreLog(gameId: GameId): ScoreLog
 
-    /** Creates the game with round 1 in progress. A game that is still active becomes ABANDONED in the same transaction. */
+    /**
+     * Creates the game with round 1 in progress. A game that is still active becomes ABANDONED in the
+     * same transaction. Each player is linked to the profile with the same [PlayerName.key], or to a
+     * new profile, so the same name at the table is the same person in the statistics.
+     */
     suspend fun startGame(newGame: NewGame): GameId
 
     /** Appends [operation] to the score log and sets the player score to its new score. */
@@ -54,8 +59,17 @@ interface GameRepository {
     /** Completes [roundId] with a ROUND_COMPLETED event and opens the next round. Scores are kept. */
     suspend fun completeRound(gameId: GameId, roundId: RoundId, completedAt: Instant)
 
-    /** Saves the winner, completes the current round and the game, with WINNER_CONFIRMED and GAME_COMPLETED events. */
-    suspend fun completeGame(gameId: GameId, winnerId: PlayerId, completedAt: Instant)
+    /**
+     * Saves the winner, completes the current round and the game, with WINNER_CONFIRMED and
+     * GAME_COMPLETED events. [finalStandings] (one per player) are frozen with it: history and
+     * statistics read them as they were, even if the ranking rules change in a later version.
+     */
+    suspend fun completeGame(
+        gameId: GameId,
+        winnerId: PlayerId,
+        finalStandings: List<RankedPlayer>,
+        completedAt: Instant,
+    )
 
     /** Updates the name only: the player id stays, so the score log keeps pointing at the same player. */
     suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant)

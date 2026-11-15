@@ -34,6 +34,19 @@ class ConfirmWinnerUseCaseTest {
     }
 
     @Test
+    fun freezesTheFinalRankingWithKingAndKooz() = runTest {
+        repository.seed(game(scores(40, 160, 90), target = 150))
+
+        confirmWinner(PlayerId(1))
+
+        val standings = repository.finalStandings.getValue(GameId(1))
+        assertEquals(listOf(PlayerId(1), PlayerId(2), PlayerId(0)), standings.map { it.player.id })
+        assertEquals(listOf(1, 2, 3), standings.map { it.rank })
+        assertEquals(listOf(true, false, false), standings.map { it.isKing })
+        assertEquals(listOf(false, false, true), standings.map { it.isKooz })
+    }
+
+    @Test
     fun anotherQualifiedPlayerThanTheSuggestionMayWin() = runTest {
         repository.seed(game(scores(150, 190), target = 150))
 

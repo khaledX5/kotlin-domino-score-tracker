@@ -13,6 +13,7 @@ import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
+import io.github.khaledx5.dominoscore.domain.model.Player
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
 import io.github.khaledx5.dominoscore.domain.model.RoundId
@@ -23,6 +24,8 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.model.getOrNull
 import io.github.khaledx5.dominoscore.domain.repository.NewGame
+import io.github.khaledx5.dominoscore.domain.rules.RankedPlayer
+import io.github.khaledx5.dominoscore.domain.rules.rankPlayers
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -188,7 +191,7 @@ class RoomGameRepositoryTest {
         val game = start("Omar", "Mona")
         val winner = game.seat(1)
 
-        repository.completeGame(game.id, winner, t1)
+        repository.completeGame(game.id, winner, rankPlayers(game.players), t1)
 
         val row = dao.findGameRow(game.id.value)!!
         assertEquals(GameStatus.COMPLETED, row.status)
@@ -203,6 +206,60 @@ class RoomGameRepositoryTest {
     }
 
     @Test
+    fun completeGameFreezesTheFinalStandings() = runTest {
+        val game = start("Omar", "Mona", "Ali", target = 50)
+        repository.recordScore(game.id, operation(game.round(), game.seat(1), ScoreOperationType.ADD, 60, 0, 60))
+        repository.recordScore(game.id, operation(game.round(), game.seat(2), ScoreOperationType.ADD, 20, 0, 20))
+        val final = repository.findActiveGame()!!
+
+        repository.completeGame(game.id, game.seat(1), rankPlayers(final.players), t1)
+
+        val standings = dao.findFinalStandings(game.id.value)
+        assertEquals(listOf(game.seat(1), game.seat(2), game.seat(0)).map { it.value }, standings.map { it.playerId })
+        assertEquals(listOf(1, 2, 3), standings.map { it.rank })
+        assertEquals(listOf(true, false, false), standings.map { it.isKing })
+        assertEquals(listOf(false, false, true), standings.map { it.isKooz })
+    }
+
+    @Test
+    fun completeGameRejectsStandingsOfOtherPlayers() = runTest {
+        val game = start("Omar", "Mona")
+        val other = start("Ali", "Sara")
+
+        assertIllegalState { repository.completeGame(game.id, game.seat(0), rankPlayers(other.players), t1) }
+        assertEquals(emptyList<Any>(), dao.findFinalStandings(game.id.value))
+    }
+
+    @Test
+    fun theSameNameInAnyCaseIsTheSameProfile() = runTest {
+        val first = start("Omar", "Mona")
+        val second = start("omar ", "Ali")
+
+        val profiles = dao.findProfiles()
+        assertEquals(listOf("Omar", "Mona", "Ali"), profiles.map { it.name })
+        val omarInFirst = dao.findPlayer(first.seat(0).value)!!.profileId
+        val omarInSecond = dao.findPlayer(second.seat(0).value)!!.profileId
+        assertEquals(omarInFirst, omarInSecond)
+        assertEquals(
+            profiles.map {
+                it.id
+            }.toSet(),
+            (first.players + second.players).map { dao.findPlayer(it.id.value)!!.profileId }.toSet(),
+        )
+    }
+
+    @Test
+    fun aRenameKeepsTheProfile() = runTest {
+        val game = start("Omar", "Mona")
+        val profile = dao.findPlayer(game.seat(0).value)!!.profileId
+
+        repository.renamePlayer(game.id, game.seat(0), PlayerName.of("Omar K.").getOrNull()!!, t1)
+
+        assertEquals(profile, dao.findPlayer(game.seat(0).value)!!.profileId)
+        assertEquals(listOf("Omar", "Mona"), dao.findProfiles().map { it.name })
+    }
+
+    @Test
     fun aFailedCompleteGameRollsBackEveryStep() = runTest {
         // A finished game that still has an open round: completing it must fail without touching the round.
         val gameId = dao.insertGame(GameEntity(targetScore = 100, status = GameStatus.COMPLETED, startedAt = t0))
@@ -210,7 +267,10 @@ class RoomGameRepositoryTest {
         dao.insertRound(RoundEntity(gameId = gameId, number = 1, status = RoundStatus.IN_PROGRESS, startedAt = t0))
         val playerId = dao.findGame(gameId)!!.players.single().id
 
-        assertIllegalState { repository.completeGame(GameId(gameId), PlayerId(playerId), t1) }
+        val standings = listOf(
+            RankedPlayer(1, Player(PlayerId(playerId), 0, PlayerName.of("Omar").getOrNull()!!, 120, 0)),
+        )
+        assertIllegalState { repository.completeGame(GameId(gameId), PlayerId(playerId), standings, t1) }
 
         assertEquals(RoundStatus.IN_PROGRESS, dao.findGame(gameId)!!.rounds.single().status)
         assertEquals(emptyList<Any>(), dao.findEvents(gameId))
@@ -242,7 +302,7 @@ class RoomGameRepositoryTest {
             repository.recordScore(game.id, add(game, seat = 0, amount = 20))
             assertEquals(20, awaitItem()?.players?.first()?.score)
 
-            repository.completeGame(game.id, game.seat(0), t1)
+            repository.completeGame(game.id, game.seat(0), rankPlayers(game.players), t1)
             assertNull(awaitItem())
         }
     }

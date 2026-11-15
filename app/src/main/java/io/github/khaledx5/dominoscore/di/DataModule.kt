@@ -23,7 +23,9 @@ object DataModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): DominoDatabase =
-        Room.databaseBuilder(context, DominoDatabase::class.java, DominoDatabase.NAME).build()
+        Room.databaseBuilder(context, DominoDatabase::class.java, DominoDatabase.NAME)
+            .addMigrations(*DominoDatabase.MIGRATIONS)
+            .build()
 
     @Provides
     @Singleton

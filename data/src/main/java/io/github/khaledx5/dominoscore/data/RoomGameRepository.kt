@@ -2,10 +2,12 @@ package io.github.khaledx5.dominoscore.data
 
 import androidx.room.withTransaction
 import io.github.khaledx5.dominoscore.data.local.DominoDatabase
+import io.github.khaledx5.dominoscore.data.local.entity.FinalStandingEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEventEntity
 import io.github.khaledx5.dominoscore.data.local.entity.GameEventType
 import io.github.khaledx5.dominoscore.data.local.entity.PlayerEntity
+import io.github.khaledx5.dominoscore.data.local.entity.ProfileEntity
 import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.data.local.toDomain
 import io.github.khaledx5.dominoscore.data.local.toEntity
@@ -22,6 +24,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.repository.GameRepository
 import io.github.khaledx5.dominoscore.domain.repository.NewGame
+import io.github.khaledx5.dominoscore.domain.rules.RankedPlayer
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -72,7 +75,14 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
         )
         dao.insertPlayers(
             newGame.playerNames.mapIndexed { seat, name ->
-                PlayerEntity(gameId = gameId, seat = seat, name = name.value, score = 0, colorIndex = seat)
+                PlayerEntity(
+                    gameId = gameId,
+                    seat = seat,
+                    name = name.value,
+                    score = 0,
+                    colorIndex = seat,
+                    profileId = profileIdOf(name, newGame.startedAt),
+                )
             },
         )
         dao.insertRound(newRound(gameId, number = 1, startedAt = newGame.startedAt))
@@ -117,32 +127,51 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
             Unit
         }
 
-    override suspend fun completeGame(gameId: GameId, winnerId: PlayerId, completedAt: Instant) =
-        database.withTransaction {
-            requirePlayerOf(gameId, winnerId)
-            val round = checkNotNull(dao.findRoundInProgress(gameId.value)) { "Game ${gameId.value} has no round" }
-            dao.completeRound(round.id, completedAt)
-            check(dao.completeGame(gameId.value, winnerId.value, completedAt) == 1) {
-                "Game ${gameId.value} is not active"
-            }
-            dao.insertEvent(
-                GameEventEntity(
-                    gameId = gameId.value,
-                    roundId = round.id,
-                    type = GameEventType.WINNER_CONFIRMED,
-                    playerId = winnerId.value,
-                    createdAt = completedAt,
-                ),
-            )
-            dao.insertEvent(
-                GameEventEntity(
-                    gameId = gameId.value,
-                    roundId = round.id,
-                    type = GameEventType.GAME_COMPLETED,
-                    createdAt = completedAt,
-                ),
-            )
+    override suspend fun completeGame(
+        gameId: GameId,
+        winnerId: PlayerId,
+        finalStandings: List<RankedPlayer>,
+        completedAt: Instant,
+    ) = database.withTransaction {
+        requirePlayerOf(gameId, winnerId)
+        val playerIds = checkNotNull(dao.findGame(gameId.value)) { "Game ${gameId.value} not found" }
+            .players.map { it.id }.toSet()
+        check(finalStandings.map { it.player.id.value }.toSet() == playerIds) {
+            "Final standings must cover every player of game ${gameId.value}"
         }
+        val round = checkNotNull(dao.findRoundInProgress(gameId.value)) { "Game ${gameId.value} has no round" }
+        dao.completeRound(round.id, completedAt)
+        check(dao.completeGame(gameId.value, winnerId.value, completedAt) == 1) {
+            "Game ${gameId.value} is not active"
+        }
+        dao.insertEvent(
+            GameEventEntity(
+                gameId = gameId.value,
+                roundId = round.id,
+                type = GameEventType.WINNER_CONFIRMED,
+                playerId = winnerId.value,
+                createdAt = completedAt,
+            ),
+        )
+        dao.insertEvent(
+            GameEventEntity(
+                gameId = gameId.value,
+                roundId = round.id,
+                type = GameEventType.GAME_COMPLETED,
+                createdAt = completedAt,
+            ),
+        )
+        dao.insertFinalStandings(
+            finalStandings.map {
+                FinalStandingEntity(
+                    playerId = it.player.id.value,
+                    rank = it.rank,
+                    isKing = it.isKing,
+                    isKooz = it.isKooz,
+                )
+            },
+        )
+    }
 
     override suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant) =
         database.withTransaction {
@@ -160,6 +189,12 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
                 ),
             )
         }
+
+    /** The profile with the same name key, or a new one: the same name at the table is the same person. */
+    private suspend fun profileIdOf(name: PlayerName, seenAt: Instant): Long =
+        dao.findProfile(name.key)?.id ?: dao.insertProfile(
+            ProfileEntity(name = name.value, nameKey = name.key, createdAt = seenAt),
+        )
 
     private suspend fun requirePlayerOf(gameId: GameId, playerId: PlayerId): PlayerEntity {
         val player = dao.findPlayer(playerId.value)

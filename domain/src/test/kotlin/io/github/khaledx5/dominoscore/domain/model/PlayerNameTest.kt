@@ -37,4 +37,10 @@ class PlayerNameTest {
         assertTrue(name("Ali").matches(name("aLI")))
         assertFalse(name("Ali").matches(name("Alia")))
     }
+
+    @Test
+    fun keyIsTheTrimmedNameWithoutCase() {
+        assertEquals("omar k.", name("  Omar K. ").key)
+        assertEquals("خالد", name("خالد").key)
+    }
 }
