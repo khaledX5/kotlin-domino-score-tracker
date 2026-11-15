@@ -3,9 +3,15 @@ package io.github.khaledx5.dominoscore.ui.game
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.audio.MusicTrack
+import io.github.khaledx5.dominoscore.domain.messages.MessageCategory
+import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessage
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessageSelector
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
+import io.github.khaledx5.dominoscore.domain.testing.FakePlayerMessageRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
@@ -15,6 +21,7 @@ import io.github.khaledx5.dominoscore.testing.FakeMusicSettingsStore
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.RecordingAudio
 import io.github.khaledx5.dominoscore.testing.testClock
+import kotlin.random.Random
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -40,11 +47,26 @@ class GameViewModelTest {
     private val startGame = StartGameUseCase(games, testClock)
     private val recordScore = RecordScoreUseCase(games, testClock)
 
+    private val messages = FakePlayerMessageRepository()
+    private val library = MessageLibrary(
+        MessageCategory.entries.flatMap { category ->
+            (1..3).map { RankingMessage("${category.name.lowercase()}_$it", category, "line $it") }
+        },
+    )
+    private val trashTalk = RankingMessageEngine(
+        games,
+        messages,
+        { library },
+        RankingMessageSelector(Random(1)),
+        testClock,
+    )
+
     private fun viewModel() = GameViewModel(
         ObserveActiveGameUseCase(games),
         recordScore,
         ChangeTargetUseCase(games, testClock),
         EndRoundUseCase(games, testClock),
+        trashTalk,
         music,
     )
 
@@ -276,5 +298,39 @@ class GameViewModelTest {
             expectNoEvents()
             assertEquals(1, games.activeGame().currentRound?.number)
         }
+    }
+
+    @Test
+    fun aScoreTapThatCrownsSomeoneSavesTheirMessages() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            val omar = games.activeGame().players.first()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.ADD)
+            viewModel.submitQuickAmount(10)
+            expectMostRecentItem()
+
+            assertEquals(
+                listOf(MessageCategory.FIRST_TIME_KING, MessageCategory.FIRST_TIME_KOOZ),
+                messages.all.map { it.category },
+            )
+        }
+    }
+
+    @Test
+    fun collectingTheStateAgainNeverAddsMessages() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val viewModel = viewModel()
+        viewModel.onPrimaryAction(PrimaryAction.END_ROUND)
+        val saved = messages.all.size
+
+        // Re-collecting, a new screen instance and repeated emissions only read the state.
+        repeat(3) { viewModel.uiState.test { expectMostRecentItem() } }
+        viewModel().uiState.test { expectMostRecentItem() }
+
+        assertEquals(2, saved)
+        assertEquals(saved, messages.all.size)
     }
 }

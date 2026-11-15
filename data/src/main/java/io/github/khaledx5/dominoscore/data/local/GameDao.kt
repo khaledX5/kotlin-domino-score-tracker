@@ -37,6 +37,9 @@ interface GameDao {
     @Query("SELECT * FROM rounds WHERE game_id = :gameId AND status = 'IN_PROGRESS' LIMIT 1")
     suspend fun findRoundInProgress(gameId: Long): RoundEntity?
 
+    @Query("SELECT * FROM rounds WHERE game_id = :gameId AND status = 'COMPLETED' ORDER BY number")
+    suspend fun findCompletedRounds(gameId: Long): List<RoundEntity>
+
     @Query("SELECT * FROM score_operations WHERE game_id = :gameId ORDER BY id")
     suspend fun findScoreOperations(gameId: Long): List<ScoreOperationEntity>
 

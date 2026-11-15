@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.repository
 
+import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
@@ -27,6 +28,9 @@ interface GameRepository {
     fun observeActiveGame(): Flow<Game?>
 
     suspend fun findActiveGame(): Game?
+
+    /** The completed rounds (by number) and the score log (in the order it was written) of [gameId]. */
+    suspend fun findScoreLog(gameId: GameId): ScoreLog
 
     /** Creates the game with round 1 in progress. A game that is still active becomes ABANDONED in the same transaction. */
     suspend fun startGame(newGame: NewGame): GameId

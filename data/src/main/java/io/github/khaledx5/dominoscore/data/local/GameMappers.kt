@@ -12,6 +12,7 @@ import io.github.khaledx5.dominoscore.domain.model.PlayerName
 import io.github.khaledx5.dominoscore.domain.model.Round
 import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
+import io.github.khaledx5.dominoscore.domain.model.ScoreAmount
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 
@@ -48,6 +49,16 @@ internal fun ScoreOperation.toEntity(gameId: GameId): ScoreOperationEntity = Sco
     playerId = playerId.value,
     type = type,
     amount = amount.value,
+    previousScore = previousScore,
+    newScore = newScore,
+    createdAt = createdAt,
+)
+
+internal fun ScoreOperationEntity.toDomain(): ScoreOperation = ScoreOperation(
+    roundId = RoundId(roundId),
+    playerId = PlayerId(playerId),
+    type = type,
+    amount = ScoreAmount.of(amount).requireStored("amount of score operation $id"),
     previousScore = previousScore,
     newScore = newScore,
     createdAt = createdAt,

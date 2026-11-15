@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrarySource
 import io.github.khaledx5.dominoscore.messages.AssetMessageLibrarySource
 import javax.inject.Singleton
+import kotlin.random.Random
 
 /** The ranking messages: the approved library in assets, read once per process. */
 @Module
@@ -19,4 +20,8 @@ object MessagesModule {
     @Singleton
     fun provideMessageLibrarySource(@ApplicationContext context: Context): MessageLibrarySource =
         AssetMessageLibrarySource(context)
+
+    /** Picks lines at random; tests pass a seeded Random instead. */
+    @Provides
+    fun provideRandom(): Random = Random.Default
 }

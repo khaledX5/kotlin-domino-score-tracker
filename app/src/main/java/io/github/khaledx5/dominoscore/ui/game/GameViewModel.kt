@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.audio.MusicController
+import io.github.khaledx5.dominoscore.domain.messages.MessageTrigger
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.RangeError
@@ -37,6 +39,7 @@ class GameViewModel @Inject constructor(
     private val recordScore: RecordScoreUseCase,
     private val changeTarget: ChangeTargetUseCase,
     private val endRound: EndRoundUseCase,
+    private val trashTalk: RankingMessageEngine,
     private val music: MusicController,
 ) : ViewModel() {
 
@@ -115,7 +118,7 @@ class GameViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            when (val result = changeTarget(newTarget)) {
+            when (val result = trashTalk.react(MessageTrigger.TARGET_CHANGE) { changeTarget(newTarget) }) {
                 is Outcome.Success -> targetEdit.value = null
 
                 is Outcome.Failure -> when (val error = result.error) {
@@ -141,7 +144,7 @@ class GameViewModel @Inject constructor(
     private fun endCurrentRound() {
         if (endRoundJob?.isActive == true) return
         endRoundJob = viewModelScope.launch {
-            val result = endRound()
+            val result = trashTalk.react(MessageTrigger.ROUND_END) { endRound() }
             if (result is Outcome.Success) endedRound.value = result.value
         }
     }
@@ -153,7 +156,12 @@ class GameViewModel @Inject constructor(
     /** The score is written first; the card animates when the new total arrives from the database. */
     private fun save(entry: ScoreEntryUi, amount: Int) {
         viewModelScope.launch {
-            when (val result = recordScore(PlayerId(entry.playerId), entry.type, amount)) {
+            val player = PlayerId(entry.playerId)
+            when (
+                val result = trashTalk.react(MessageTrigger.SCORE_CHANGE, player) {
+                    recordScore(player, entry.type, amount)
+                }
+            ) {
                 is Outcome.Success -> scoreEntry.value = null
 
                 is Outcome.Failure -> when (val error = result.error) {

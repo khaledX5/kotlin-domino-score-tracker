@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.testing
 
+import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
@@ -28,6 +29,8 @@ class FakeGameRepository : GameRepository {
 
     val operations = mutableListOf<ScoreOperation>()
     val completedRounds = mutableListOf<Round>()
+    private val operationsByGame = mutableMapOf<GameId, MutableList<ScoreOperation>>()
+    private val roundsByGame = mutableMapOf<GameId, MutableList<Round>>()
     var writeCount = 0
         private set
 
@@ -48,6 +51,9 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun findActiveGame(): Game? = games.value.firstOrNull { it.isActive }
 
+    override suspend fun findScoreLog(gameId: GameId): ScoreLog =
+        ScoreLog(roundsByGame[gameId].orEmpty().toList(), operationsByGame[gameId].orEmpty().toList())
+
     override suspend fun startGame(newGame: NewGame): GameId {
         writeCount++
         val game = Game(
@@ -64,6 +70,7 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun recordScore(gameId: GameId, operation: ScoreOperation) = write(gameId) { game ->
         operations += operation
+        operationsByGame.getOrPut(gameId) { mutableListOf() } += operation
         game.copy(
             players = game.players.map { if (it.id == operation.playerId) it.copy(score = operation.newScore) else it },
         )
@@ -102,7 +109,10 @@ class FakeGameRepository : GameRepository {
         val round = checkNotNull(game.currentRound).also {
             check(it.id == roundId) { "Round $roundId is not in progress" }
         }
-        return round.copy(status = RoundStatus.COMPLETED, completedAt = completedAt).also { completedRounds += it }
+        return round.copy(status = RoundStatus.COMPLETED, completedAt = completedAt).also {
+            completedRounds += it
+            roundsByGame.getOrPut(game.id) { mutableListOf() } += it
+        }
     }
 
     private fun abandonIfActive(game: Game): Game =
