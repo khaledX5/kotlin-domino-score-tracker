@@ -144,7 +144,7 @@ fun GameContent(
                 },
                 actions = {
                     TargetChip(target = game.target, onClick = onEditTarget)
-                    if (music.visible) MusicButton(onClick = onPlayMusic)
+                    if (music.visible) LaughButton(onClick = onPlayMusic)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
@@ -208,14 +208,15 @@ private fun TargetChip(target: Int, onClick: () -> Unit, modifier: Modifier = Mo
     }
 }
 
-/** Plays the tune once per tap, like a doorbell. It never stays pressed: there is nothing to switch off. */
+/**
+ * The 😂 button: every tap plays a laugh once, like a doorbell. It never stays pressed, there is
+ * nothing to switch off. The emoji is the icon, so it reads as "laugh" in every language.
+ */
 @Composable
-private fun MusicButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedIconButton(onClick = onClick, modifier = modifier) {
-        Icon(
-            painter = painterResource(R.drawable.ic_music_note),
-            contentDescription = stringResource(R.string.game_music_play),
-        )
+private fun LaughButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val description = stringResource(R.string.game_laugh)
+    OutlinedIconButton(onClick = onClick, modifier = modifier.semantics { contentDescription = description }) {
+        Text(text = stringResource(R.string.game_laugh_emoji), style = MaterialTheme.typography.titleLarge)
     }
 }
 

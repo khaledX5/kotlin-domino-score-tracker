@@ -63,8 +63,8 @@ class GameContentTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Play music").performClick()
-        composeRule.onNodeWithContentDescription("Play music").performClick()
+        composeRule.onNodeWithContentDescription("Laugh").performClick()
+        composeRule.onNodeWithContentDescription("Laugh").performClick()
 
         // Same button, same label, after every tap: nothing stays switched on.
         assertEquals(2, taps)
@@ -79,7 +79,7 @@ class GameContentTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Play music").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Laugh").assertDoesNotExist()
     }
 
     @Test

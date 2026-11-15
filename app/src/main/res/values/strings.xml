@@ -20,7 +20,8 @@
         <item quantity="one">%1$d pt</item>
         <item quantity="other">%1$d pts</item>
     </plurals>
-    <string name="game_music_play">Play music</string>
+    <string name="game_laugh">Laugh</string>
+    <string name="game_laugh_emoji" translatable="false">😂</string>
     <string name="game_live_ranking">Live ranking</string>
     <plurals name="game_qualified_title">
         <item quantity="one">%1$s reached the target</item>
@@ -61,8 +62,8 @@
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System</string>
     <string name="settings_music">Music</string>
-    <string name="settings_gameplay_music">Gameplay music</string>
-    <string name="settings_gameplay_music_hint">Plays once each time you tap the music button</string>
+    <string name="settings_gameplay_music">Laugh button</string>
+    <string name="settings_gameplay_music_hint">Shows 😂 in the game; each tap plays a laugh once</string>
     <string name="settings_winner_music">Winner music</string>
     <string name="settings_winner_music_hint">Plays after you confirm the winner</string>
     <string name="settings_volume">Music volume</string>

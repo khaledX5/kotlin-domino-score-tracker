@@ -3,9 +3,9 @@ package io.github.khaledx5.dominoscore.audio
 import androidx.annotation.RawRes
 import io.github.khaledx5.dominoscore.R
 
-/** The two tunes the app plays. Each plays once per request. */
+/** The two sounds the app plays. Each plays once per request. GAMEPLAY is the laugh of the 😂 button. */
 enum class MusicTrack(@param:RawRes val resId: Int) {
-    GAMEPLAY(R.raw.gameplay_music),
+    GAMEPLAY(R.raw.laugh_sound),
     WINNER(R.raw.winner_music),
 }
 
