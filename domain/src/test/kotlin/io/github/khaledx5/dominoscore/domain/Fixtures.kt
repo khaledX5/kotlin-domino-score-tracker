@@ -12,9 +12,13 @@ import io.github.khaledx5.dominoscore.domain.model.RoundId
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
 import io.github.khaledx5.dominoscore.domain.model.ScoreAmount
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneOffset
 
 val T0: Instant = Instant.parse("2026-11-15T18:00:00Z")
+
+val fixedClock: Clock = Clock.fixed(T0, ZoneOffset.UTC)
 
 fun <T> Outcome<T, *>.valueOrFail(): T = when (this) {
     is Outcome.Success -> value
