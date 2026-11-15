@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -61,6 +62,7 @@ fun GameScreen(
     onGameClose: () -> Unit,
     onShowRoundResults: (roundNumber: Int) -> Unit,
     onCelebrate: (gameId: Long) -> Unit,
+    onSeeAllMoves: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = hiltViewModel(),
 ) {
@@ -103,6 +105,7 @@ fun GameScreen(
                 onEditTarget = { viewModel.openTargetEdit(current.game.target) },
                 onPrimaryAction = { viewModel.onPrimaryAction(current.game.primaryAction) },
                 onRename = { viewModel.openRename(it.playerId, it.name) },
+                onSeeAllMoves = onSeeAllMoves,
                 modifier = modifier,
             )
             current.rename?.let { edit ->
@@ -155,6 +158,7 @@ fun GameContent(
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
     onRename: (StandingUi) -> Unit = {},
+    onSeeAllMoves: () -> Unit = {},
 ) {
     KeepScreenOn()
     val haptics = LocalHapticFeedback.current
@@ -214,7 +218,13 @@ fun GameContent(
                 LiveRankingCard(standings = game.standings)
             }
             item(key = "history") {
-                RecentMovesCard(moves = game.recentMoves)
+                RecentMovesCard(moves = game.recentMoves) {
+                    if (game.recentMoves.isNotEmpty()) {
+                        TextButton(onClick = onSeeAllMoves, modifier = Modifier.align(Alignment.End)) {
+                            Text(stringResource(R.string.game_history_see_more))
+                        }
+                    }
+                }
             }
         }
     }

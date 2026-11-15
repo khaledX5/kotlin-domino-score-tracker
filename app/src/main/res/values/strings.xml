@@ -64,6 +64,7 @@
     <string name="game_history">History</string>
     <string name="game_history_empty">Every Add and Penalty shows up here, newest first.</string>
     <string name="move_total">= %1$d</string>
+    <string name="game_history_see_more">See more</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>

@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
@@ -51,7 +54,11 @@ internal fun ScoreMove.toUi(players: List<Player>): MoveUi? = players.firstOrNul
 
 /** The latest moves of the game, newest on top, under the live ranking. */
 @Composable
-fun RecentMovesCard(moves: List<MoveUi>, modifier: Modifier = Modifier, footer: @Composable () -> Unit = {}) {
+fun RecentMovesCard(
+    moves: List<MoveUi>,
+    modifier: Modifier = Modifier,
+    footer: @Composable ColumnScope.() -> Unit = {},
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -116,10 +123,18 @@ fun MoveRow(move: MoveUi, modifier: Modifier = Modifier, showRound: Boolean = tr
             ),
             style = MaterialTheme.typography.labelLarge,
             color = if (move.points < 0) gameColors.penalty else gameColors.add,
+            textAlign = TextAlign.End,
+            modifier = Modifier.widthIn(min = POINTS_WIDTH),
         )
         Text(
             text = stringResource(R.string.move_total, move.total),
             style = MaterialTheme.typography.titleSmall,
+            textAlign = TextAlign.End,
+            modifier = Modifier.widthIn(min = TOTAL_WIDTH),
         )
     }
 }
+
+/** Fixed columns, so points and totals line up from row to row. */
+private val POINTS_WIDTH = 48.dp
+private val TOTAL_WIDTH = 64.dp

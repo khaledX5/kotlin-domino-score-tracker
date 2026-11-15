@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.khaledx5.dominoscore.ui.game.GameScreen
+import io.github.khaledx5.dominoscore.ui.game.MovesScreen
 import io.github.khaledx5.dominoscore.ui.history.GameDetailScreen
 import io.github.khaledx5.dominoscore.ui.history.HistoryScreen
 import io.github.khaledx5.dominoscore.ui.home.HomeScreen
@@ -30,6 +31,10 @@ data object SetupDestination
 
 @Serializable
 data object GameDestination
+
+/** Every move of the game in progress, newest first. */
+@Serializable
+data object MovesDestination
 
 @Serializable
 data object HistoryDestination
@@ -56,6 +61,12 @@ fun DominoNavHost(modifier: Modifier = Modifier, navController: NavHostControlle
                 onOpenHistory = { navController.navigate(HistoryDestination) },
             )
         }
+        composable<MovesDestination> {
+            MovesScreen(
+                onBack = { navController.popBackStack() },
+                onGameClose = { navController.popBackStack(HomeDestination, inclusive = false) },
+            )
+        }
         composable<HistoryDestination> {
             HistoryScreen(
                 onBack = { navController.popBackStack() },
@@ -78,6 +89,7 @@ fun DominoNavHost(modifier: Modifier = Modifier, navController: NavHostControlle
                 onBack = { navController.popBackStack() },
                 onGameClose = { navController.popBackStack(HomeDestination, inclusive = false) },
                 onShowRoundResults = { navController.navigate(RoundResultsDestination(it)) },
+                onSeeAllMoves = { navController.navigate(MovesDestination) },
                 onCelebrate = { gameId ->
                     navController.navigate(SummaryDestination(gameId)) { popUpTo(HomeDestination) }
                 },
