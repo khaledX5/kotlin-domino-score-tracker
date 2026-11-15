@@ -8,8 +8,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.khaledx5.dominoscore.data.RoomGameRepository
+import io.github.khaledx5.dominoscore.data.RoomPlayerMessageRepository
 import io.github.khaledx5.dominoscore.data.local.DominoDatabase
 import io.github.khaledx5.dominoscore.domain.repository.GameRepository
+import io.github.khaledx5.dominoscore.domain.repository.PlayerMessageRepository
 import java.time.Clock
 import javax.inject.Singleton
 
@@ -26,6 +28,11 @@ object DataModule {
     @Provides
     @Singleton
     fun provideGameRepository(database: DominoDatabase): GameRepository = RoomGameRepository(database)
+
+    @Provides
+    @Singleton
+    fun providePlayerMessageRepository(database: DominoDatabase): PlayerMessageRepository =
+        RoomPlayerMessageRepository(database)
 
     /** Timestamps are stored in UTC; screens format them in the device time zone. */
     @Provides
