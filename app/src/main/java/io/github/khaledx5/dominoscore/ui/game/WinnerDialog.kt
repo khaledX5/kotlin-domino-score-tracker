@@ -93,6 +93,7 @@ private fun CandidateRow(candidate: WinnerCandidateUi, selected: Boolean, onSele
         Text(
             text = candidate.name,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
@@ -100,6 +101,7 @@ private fun CandidateRow(candidate: WinnerCandidateUi, selected: Boolean, onSele
         Text(
             text = pluralStringResource(R.plurals.points_value, candidate.score, candidate.score),
             style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

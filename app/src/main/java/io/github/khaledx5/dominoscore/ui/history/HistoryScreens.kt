@@ -112,7 +112,8 @@ private fun PastGameCard(game: PastGameUi, onClick: () -> Unit, modifier: Modifi
 
 @Composable
 private fun GameHeadline(game: PastGameUi) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+    // Stacked, so a long winner name is never cut off by the date.
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs / 2)) {
         Text(
             text = game.winnerName?.let { stringResource(R.string.history_winner, it) }
                 ?: stringResource(R.string.history_abandoned),
@@ -124,7 +125,6 @@ private fun GameHeadline(game: PastGameUi) {
             },
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
         )
         Text(
             text = stringResource(R.string.history_date_target, rememberFormattedDate(game.startedAt), game.target),
