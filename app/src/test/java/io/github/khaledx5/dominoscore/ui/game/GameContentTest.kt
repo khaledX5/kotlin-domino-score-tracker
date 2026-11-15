@@ -30,7 +30,8 @@ class GameContentTest {
     fun showsTheRoundTargetAndEveryPlayer() {
         composeRule.setContent {
             DominoTheme {
-                GameContent(game, MusicButtonUi(visible = true, playing = false), onBack = {}, onToggleMusic = {})
+                GameContent(game, MusicButtonUi(visible = true, playing = false), onBack = {
+                }, onToggleMusic = {}, onAdd = {}, onPenalty = {})
             }
         }
 
@@ -50,6 +51,8 @@ class GameContentTest {
                     music = MusicButtonUi(visible = true, playing = true),
                     onBack = {},
                     onToggleMusic = { toggles++ },
+                    onAdd = {},
+                    onPenalty = {},
                 )
             }
         }
@@ -63,7 +66,8 @@ class GameContentTest {
     fun noMusicButtonWhenGameplayMusicIsOff() {
         composeRule.setContent {
             DominoTheme {
-                GameContent(game, MusicButtonUi(visible = false, playing = false), onBack = {}, onToggleMusic = {})
+                GameContent(game, MusicButtonUi(visible = false, playing = false), onBack = {
+                }, onToggleMusic = {}, onAdd = {}, onPenalty = {})
             }
         }
 

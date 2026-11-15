@@ -35,7 +35,7 @@ class GameViewModelTest {
     private val startGame = StartGameUseCase(games, testClock)
     private val recordScore = RecordScoreUseCase(games, testClock)
 
-    private fun viewModel() = GameViewModel(ObserveActiveGameUseCase(games), music)
+    private fun viewModel() = GameViewModel(ObserveActiveGameUseCase(games), recordScore, music)
 
     @Test
     fun keepsCardsInSeatOrderAndTheRankingInScoreOrder() = runTest {
@@ -78,6 +78,82 @@ class GameViewModelTest {
     fun reportsWhenThereIsNoGameAnyMore() = runTest {
         viewModel().uiState.test {
             assertEquals(GameUiState.NoActiveGame, expectMostRecentItem())
+        }
+    }
+
+    private fun GameUiState.entry() = (this as GameUiState.Playing).scoreEntry
+
+    private fun GameUiState.scores() = (this as GameUiState.Playing).game.players.map { it.score }
+
+    @Test
+    fun aQuickAmountIsSavedAtOnceAndClosesTheSheet() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.ADD)
+            assertEquals("Omar", awaitItem().entry()?.playerName)
+
+            viewModel.submitQuickAmount(15)
+
+            val after = expectMostRecentItem()
+            assertEquals(null, after.entry())
+            assertEquals(listOf(15, 0), after.scores())
+        }
+    }
+
+    @Test
+    fun aTypedPenaltyCanTakeTheScoreBelowZero() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val mona = games.activeGame().players.last()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(mona.id.value, mona.name.value, ScoreOperationType.PENALTY)
+            viewModel.updateAmount("3a0")
+            viewModel.submitAmount()
+
+            assertEquals(listOf(0, -30), expectMostRecentItem().scores())
+        }
+    }
+
+    @Test
+    fun wrongAmountsStayInTheSheetWithAnError() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.ADD)
+
+            viewModel.submitAmount()
+            assertEquals(ScoreEntryError.NOT_A_NUMBER, expectMostRecentItem().entry()?.error)
+
+            viewModel.updateAmount("0")
+            viewModel.submitAmount()
+            assertEquals(ScoreEntryError.TOO_LOW, expectMostRecentItem().entry()?.error)
+            assertEquals(0, games.operations.size)
+        }
+    }
+
+    @Test
+    fun dismissingTheSheetSavesNothing() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.ADD)
+            viewModel.updateAmount("20")
+            viewModel.dismissScoreEntry()
+
+            assertEquals(null, expectMostRecentItem().entry())
+            assertEquals(0, games.operations.size)
         }
     }
 }

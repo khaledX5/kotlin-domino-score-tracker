@@ -1,6 +1,7 @@
 package io.github.khaledx5.dominoscore.ui.game
 
 import androidx.compose.runtime.Immutable
+import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
@@ -11,7 +12,7 @@ sealed interface GameUiState {
     /** The game ended or was replaced: the screen closes itself. */
     data object NoActiveGame : GameUiState
 
-    data class Playing(val game: GameUi, val music: MusicButtonUi) : GameUiState
+    data class Playing(val game: GameUi, val music: MusicButtonUi, val scoreEntry: ScoreEntryUi? = null) : GameUiState
 }
 
 /**
@@ -25,6 +26,30 @@ data class GameUi(
     val players: List<StandingUi>,
     val standings: List<StandingUi>,
 )
+
+enum class ScoreEntryError {
+    NOT_A_NUMBER,
+    TOO_LOW,
+    TOO_HIGH,
+
+    /** The new total would not fit: a safety net, far above any real game. */
+    SCORE_LIMIT,
+}
+
+/** The open Add or Penalty sheet for one player. */
+@Immutable
+data class ScoreEntryUi(
+    val playerId: Long,
+    val playerName: String,
+    val type: ScoreOperationType,
+    val amountText: String = "",
+    val error: ScoreEntryError? = null,
+) {
+    companion object {
+        /** Common domino hands, one tap each. */
+        val QUICK_AMOUNTS = listOf(5, 10, 15, 20, 25, 50)
+    }
+}
 
 /** The music button is hidden when gameplay music is switched off in the settings. */
 @Immutable

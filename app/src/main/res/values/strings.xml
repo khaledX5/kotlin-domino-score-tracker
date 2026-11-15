@@ -23,6 +23,17 @@
     <string name="game_music_play">Play music</string>
     <string name="game_music_pause">Pause music</string>
     <string name="game_live_ranking">Live ranking</string>
+    <string name="game_add">Add</string>
+    <string name="game_penalty">Penalty</string>
+    <string name="score_delta_add" translatable="false">+%1$d</string>
+    <string name="score_delta_penalty" translatable="false">-%1$d</string>
+    <string name="score_sheet_add_title">Add points for %1$s</string>
+    <string name="score_sheet_penalty_title">Penalty for %1$s</string>
+    <string name="score_sheet_custom_label">Other amount</string>
+    <string name="score_sheet_save">Save</string>
+    <string name="error_amount_too_low">Enter at least %1$d</string>
+    <string name="error_amount_too_high">Enter at most %1$d</string>
+    <string name="error_score_limit">That total is too large to keep</string>
     <string name="navigate_back">Back</string>
     <string name="cancel">Cancel</string>
     <string name="points_suffix">pts</string>

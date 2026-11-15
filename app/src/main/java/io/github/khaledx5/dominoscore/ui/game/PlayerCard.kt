@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.ui.game
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
+import io.github.khaledx5.dominoscore.ui.components.AnimatedScore
 import io.github.khaledx5.dominoscore.ui.components.KingBadge
 import io.github.khaledx5.dominoscore.ui.components.KoozBadge
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
@@ -75,7 +79,7 @@ fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Comp
                         if (player.isKooz) KoozBadge()
                     }
                 }
-                Text(text = player.score.toString(), style = MaterialTheme.typography.displaySmall)
+                AnimatedScore(score = player.score)
             }
             actions()
         }
@@ -113,6 +117,61 @@ private fun RankChip(rank: Int, modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = Spacing.s, vertical = Spacing.xs / 2),
         )
+    }
+}
+
+/** The two score buttons under each card. Colour and sign tell them apart, not only the word. */
+@Composable
+fun ScoreButtons(onAdd: () -> Unit, onPenalty: () -> Unit, modifier: Modifier = Modifier) {
+    val gameColors = DominoThemeExtras.gameColors
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+        ScoreButton(
+            label = stringResource(R.string.game_add),
+            iconRes = R.drawable.ic_add,
+            accent = gameColors.add,
+            container = gameColors.addContainer,
+            onClick = onAdd,
+            modifier = Modifier.weight(1f),
+        )
+        ScoreButton(
+            label = stringResource(R.string.game_penalty),
+            iconRes = R.drawable.ic_remove,
+            accent = gameColors.penalty,
+            container = gameColors.penaltyContainer,
+            onClick = onPenalty,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun ScoreButton(
+    label: String,
+    @DrawableRes iconRes: Int,
+    accent: Color,
+    container: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.medium, color = container) {
+        Row(
+            modifier = Modifier.padding(vertical = Spacing.m),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = Spacing.xs),
+            )
+        }
     }
 }
 

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
+import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.ui.components.StandingRow
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
@@ -67,13 +68,26 @@ fun GameScreen(
             CircularProgressIndicator()
         }
 
-        is GameUiState.Playing -> GameContent(
-            game = current.game,
-            music = current.music,
-            onBack = onBack,
-            onToggleMusic = viewModel::toggleMusic,
-            modifier = modifier,
-        )
+        is GameUiState.Playing -> {
+            GameContent(
+                game = current.game,
+                music = current.music,
+                onBack = onBack,
+                onToggleMusic = viewModel::toggleMusic,
+                onAdd = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.ADD) },
+                onPenalty = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.PENALTY) },
+                modifier = modifier,
+            )
+            current.scoreEntry?.let { entry ->
+                ScoreEntrySheet(
+                    entry = entry,
+                    onAmountChange = viewModel::updateAmount,
+                    onQuickAmount = viewModel::submitQuickAmount,
+                    onSubmit = viewModel::submitAmount,
+                    onDismiss = viewModel::dismissScoreEntry,
+                )
+            }
+        }
     }
 }
 
@@ -84,6 +98,8 @@ fun GameContent(
     music: MusicButtonUi,
     onBack: () -> Unit,
     onToggleMusic: () -> Unit,
+    onAdd: (StandingUi) -> Unit,
+    onPenalty: (StandingUi) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -116,7 +132,9 @@ fun GameContent(
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             items(game.players, key = { it.playerId }) { player ->
-                PlayerCard(player = player)
+                PlayerCard(player = player) {
+                    ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
+                }
             }
             item(key = "ranking") {
                 LiveRankingCard(standings = game.standings)
@@ -205,6 +223,8 @@ private fun GameContentPreview() {
             music = MusicButtonUi(visible = true, playing = true),
             onBack = {},
             onToggleMusic = {},
+            onAdd = {},
+            onPenalty = {},
         )
     }
 }
