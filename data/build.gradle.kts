@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -22,6 +24,14 @@ kotlin {
     jvmToolchain(libs.versions.jvmToolchain.get().toInt())
 }
 
+room {
+    // Exported schemas are committed, so every future migration can be tested against the real v1.
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":domain"))
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 }
