@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.home
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import org.junit.Rule
 import org.junit.Test
@@ -26,19 +27,23 @@ class HomeContentTest {
             ),
         )
 
-        composeRule.setContent { DominoTheme { HomeContent(state = HomeUiState.Ready(game), onNewGame = {}) } }
+        composeRule.setContent {
+            DominoTheme { HomeContent(state = HomeUiState.Ready(game), onNewGame = {}, onOpenSettings = {}) }
+        }
 
-        composeRule.onNodeWithText("Game in progress").assertIsDisplayed()
-        composeRule.onNodeWithText("Round 2 · Target 150").assertIsDisplayed()
-        composeRule.onNodeWithText("Omar").assertIsDisplayed()
-        composeRule.onNodeWithText("Qualified").assertIsDisplayed()
-        composeRule.onNodeWithText("-20").assertIsDisplayed()
+        composeRule.onNodeWithText("Game in progress").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Round 2 · Target 150").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Omar").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Qualified").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("-20").performScrollTo().assertIsDisplayed()
     }
 
     @Test
     fun hidesTheCardWhenNoGameIsInProgress() {
         composeRule.setContent {
-            DominoTheme { HomeContent(state = HomeUiState.Ready(activeGame = null), onNewGame = {}) }
+            DominoTheme {
+                HomeContent(state = HomeUiState.Ready(activeGame = null), onNewGame = {}, onOpenSettings = {})
+            }
         }
 
         composeRule.onNodeWithText("Domino Score Tracker").assertIsDisplayed()
