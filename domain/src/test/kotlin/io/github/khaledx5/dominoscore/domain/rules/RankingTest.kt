@@ -74,8 +74,19 @@ class RankingTest {
     }
 
     @Test
-    fun whenAllScoresAreEqualEveryoneIsBothKingAndKooz() {
-        assertEquals(listOf("KING+KOOZ", "KING+KOOZ", "KING+KOOZ"), titlesOf(0, 0, 0))
+    fun aNewGameOnZeroHasNoKingAndNoKooz() {
+        assertEquals(listOf("#1", "#1", "#1"), titlesOf(0, 0, 0))
+    }
+
+    @Test
+    fun aFullTieLaterInTheGameHasNoTitlesEither() {
+        assertEquals(listOf("#1", "#1", "#1", "#1"), titlesOf(30, 30, 30, 30))
+        assertEquals(listOf("#1", "#1"), titlesOf(-15, -15))
+    }
+
+    @Test
+    fun titlesComeBackAsSoonAsTheScoresDiffer() {
+        assertEquals(listOf("KING", "KOOZ", "KOOZ"), titlesOf(5, 0, 0))
     }
 
     @Test
