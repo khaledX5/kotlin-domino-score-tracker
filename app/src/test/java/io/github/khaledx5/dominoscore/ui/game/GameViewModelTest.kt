@@ -9,11 +9,13 @@ import io.github.khaledx5.dominoscore.domain.messages.MessageTone
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessage
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageSelector
+import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.testing.FakePlayerMessageRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
@@ -69,6 +71,7 @@ class GameViewModelTest {
         recordScore,
         ChangeTargetUseCase(games, testClock),
         EndRoundUseCase(games, testClock),
+        ConfirmWinnerUseCase(games, testClock),
         trashTalk,
         music,
     )
@@ -338,5 +341,101 @@ class GameViewModelTest {
 
         assertEquals(2, saved)
         assertEquals(saved, messages.all.size)
+    }
+
+    private fun GameUiState.winnerPick() = (this as GameUiState.Playing).winnerPick
+
+    @Test
+    fun endGameOpensTheWinnerDialogWithTheLeaderPicked() = runTest {
+        startGame(targetScore = 50, playerNames = listOf("Omar", "Mona", "Ali"))
+        val (omar, mona, _) = games.activeGame().players
+        recordScore(omar.id, ScoreOperationType.ADD, 70)
+        recordScore(mona.id, ScoreOperationType.ADD, 55)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.onPrimaryAction(PrimaryAction.END_GAME)
+
+            val pick = expectMostRecentItem().winnerPick()!!
+            assertEquals(listOf("Omar", "Mona"), pick.candidates.map { it.name })
+            assertEquals(omar.id.value, pick.selectedId)
+            assertFalse(pick.tieAtTop)
+        }
+    }
+
+    @Test
+    fun aTieAtTheTopWaitsForTheTableToPick() = runTest {
+        startGame(targetScore = 50, playerNames = listOf("Omar", "Mona"))
+        val (omar, mona) = games.activeGame().players
+        recordScore(omar.id, ScoreOperationType.ADD, 60)
+        recordScore(mona.id, ScoreOperationType.ADD, 60)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.onPrimaryAction(PrimaryAction.END_GAME)
+            val tie = expectMostRecentItem().winnerPick()!!
+            assertTrue(tie.tieAtTop)
+            assertFalse(tie.canConfirm)
+
+            viewModel.selectWinner(mona.id.value)
+            assertTrue(expectMostRecentItem().winnerPick()!!.canConfirm)
+        }
+    }
+
+    @Test
+    fun confirmingEndsTheGameWithThePickedWinner() = runTest {
+        startGame(targetScore = 50, playerNames = listOf("Omar", "Mona"))
+        val (omar, mona) = games.activeGame().players
+        recordScore(omar.id, ScoreOperationType.ADD, 70)
+        recordScore(mona.id, ScoreOperationType.ADD, 55)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.onPrimaryAction(PrimaryAction.END_GAME)
+            // House rules: any qualified player may be confirmed, not only the top score.
+            viewModel.selectWinner(mona.id.value)
+            viewModel.confirmWinner()
+
+            assertEquals(GameUiState.NoActiveGame, expectMostRecentItem())
+        }
+        val finished = games.allGames().single()
+        assertEquals(GameStatus.COMPLETED, finished.status)
+        assertEquals(mona.id, finished.winnerId)
+    }
+
+    @Test
+    fun cancellingKeepsTheGameGoing() = runTest {
+        startGame(targetScore = 50, playerNames = listOf("Omar", "Mona"))
+        recordScore(games.activeGame().players.first().id, ScoreOperationType.ADD, 70)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.onPrimaryAction(PrimaryAction.END_GAME)
+            viewModel.dismissWinnerPick()
+
+            assertEquals(null, expectMostRecentItem().winnerPick())
+        }
+        assertEquals(GameStatus.ACTIVE, games.activeGame().status)
+        assertEquals(emptyList<MusicTrack>(), recordingAudio.started)
+    }
+
+    @Test
+    fun aPlayerWhoIsNotACandidateCannotBeSelected() = runTest {
+        startGame(targetScore = 50, playerNames = listOf("Omar", "Mona"))
+        val (omar, mona) = games.activeGame().players
+        recordScore(omar.id, ScoreOperationType.ADD, 70)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.onPrimaryAction(PrimaryAction.END_GAME)
+            viewModel.selectWinner(mona.id.value)
+
+            assertEquals(omar.id.value, expectMostRecentItem().winnerPick()!!.selectedId)
+        }
     }
 }

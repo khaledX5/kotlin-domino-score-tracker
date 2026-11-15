@@ -6,6 +6,7 @@ import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
+import io.github.khaledx5.dominoscore.domain.rules.WinnerSelection
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
 
@@ -22,6 +23,7 @@ sealed interface GameUiState {
         val targetEdit: TargetEditUi? = null,
         /** Set once a round was ended here: the screen opens its results, then clears it. */
         val endedRound: Int? = null,
+        val winnerPick: WinnerPickUi? = null,
     ) : GameUiState
 }
 
@@ -36,6 +38,9 @@ data class GameUi(
     val players: List<StandingUi>,
     val standings: List<StandingUi>,
     val primaryAction: PrimaryAction = PrimaryAction.END_ROUND,
+    /** Who the table may confirm, from the domain's winner selection. Empty while nobody qualified. */
+    val winnerCandidates: List<WinnerCandidateUi> = emptyList(),
+    val suggestedWinnerId: Long? = null,
 ) {
     /** Players at or above the target, in ranking order. Empty while nobody qualified. */
     val qualifiedNames: List<String> get() = standings.filter { it.qualified }.map { it.name }
@@ -88,5 +93,7 @@ internal fun GameSnapshot.toGameUi(messages: Map<PlayerId, RankingMessage> = emp
         players = standings.sortedBy { standing -> game.players.indexOfFirst { it.id.value == standing.playerId } },
         standings = standings,
         primaryAction = primaryAction,
+        winnerCandidates = winnerSelection.candidates.map { WinnerCandidateUi(it.id.value, it.name.value, it.score) },
+        suggestedWinnerId = (winnerSelection as? WinnerSelection.Suggested)?.suggested?.id?.value,
     )
 }

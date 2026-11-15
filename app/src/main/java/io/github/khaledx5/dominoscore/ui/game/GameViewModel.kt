@@ -14,6 +14,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidAmount
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidTarget
@@ -42,6 +43,7 @@ class GameViewModel @Inject constructor(
     private val recordScore: RecordScoreUseCase,
     private val changeTarget: ChangeTargetUseCase,
     private val endRound: EndRoundUseCase,
+    private val endGameWith: ConfirmWinnerUseCase,
     private val trashTalk: RankingMessageEngine,
     private val music: MusicController,
 ) : ViewModel() {
@@ -49,9 +51,10 @@ class GameViewModel @Inject constructor(
     private val scoreEntry = MutableStateFlow<ScoreEntryUi?>(null)
     private val targetEdit = MutableStateFlow<TargetEditUi?>(null)
     private val endedRound = MutableStateFlow<Int?>(null)
+    private val winnerPick = MutableStateFlow<WinnerPickUi?>(null)
     private var endRoundJob: Job? = null
 
-    private val screenState = combine(scoreEntry, targetEdit, endedRound, ::ScreenState)
+    private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, ::ScreenState)
 
     val uiState: StateFlow<GameUiState> = combine(
         observeActiveGame().withMessages(observeMessages),
@@ -67,6 +70,7 @@ class GameViewModel @Inject constructor(
                 scoreEntry = screen.scoreEntry,
                 targetEdit = screen.targetEdit,
                 endedRound = screen.endedRound,
+                winnerPick = screen.winnerPick,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
@@ -140,7 +144,37 @@ class GameViewModel @Inject constructor(
     fun onPrimaryAction(action: PrimaryAction) {
         when (action) {
             PrimaryAction.END_ROUND -> endCurrentRound()
-            PrimaryAction.END_GAME -> Unit
+            PrimaryAction.END_GAME -> openWinnerPick()
+        }
+    }
+
+    private fun openWinnerPick() {
+        val game = (uiState.value as? GameUiState.Playing)?.game ?: return
+        if (game.winnerCandidates.isEmpty()) return
+        winnerPick.value = WinnerPickUi(
+            candidates = game.winnerCandidates,
+            tieAtTop = game.suggestedWinnerId == null,
+            selectedId = game.suggestedWinnerId,
+        )
+    }
+
+    fun selectWinner(playerId: Long) = winnerPick.update { pick ->
+        if (pick == null || pick.candidates.none { it.playerId == playerId }) pick else pick.copy(selectedId = playerId)
+    }
+
+    /** Cancel: the game stays active, nothing is saved, no music plays. */
+    fun dismissWinnerPick() {
+        winnerPick.value = null
+    }
+
+    /** The game ends only here, with the player the table picked. */
+    fun confirmWinner() {
+        val pick = winnerPick.value ?: return
+        val winnerId = pick.selectedId ?: return
+        viewModelScope.launch {
+            // Success ends the game; any refusal (the target was raised meanwhile) just closes the dialog.
+            endGameWith(PlayerId(winnerId))
+            winnerPick.value = null
         }
     }
 
@@ -180,7 +214,12 @@ class GameViewModel @Inject constructor(
     }
 
     /** What only this screen knows: the open sheet or dialog and a round that was just ended. */
-    private data class ScreenState(val scoreEntry: ScoreEntryUi?, val targetEdit: TargetEditUi?, val endedRound: Int?)
+    private data class ScreenState(
+        val scoreEntry: ScoreEntryUi?,
+        val targetEdit: TargetEditUi?,
+        val endedRound: Int?,
+        val winnerPick: WinnerPickUi?,
+    )
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

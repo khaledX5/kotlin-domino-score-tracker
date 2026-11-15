@@ -94,6 +94,14 @@ fun GameScreen(
                 onPrimaryAction = { viewModel.onPrimaryAction(current.game.primaryAction) },
                 modifier = modifier,
             )
+            current.winnerPick?.let { pick ->
+                WinnerDialog(
+                    pick = pick,
+                    onSelect = viewModel::selectWinner,
+                    onConfirm = viewModel::confirmWinner,
+                    onDismiss = viewModel::dismissWinnerPick,
+                )
+            }
             current.targetEdit?.let { edit ->
                 TargetEditDialog(
                     edit = edit,

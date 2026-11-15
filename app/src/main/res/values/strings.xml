@@ -40,6 +40,10 @@
     <string name="round_results_title">End of round %1$d</string>
     <string name="round_results_body">Scores carry on into round %1$d.</string>
     <string name="round_results_continue">Continue game</string>
+    <string name="winner_dialog_title">Who won?</string>
+    <string name="winner_dialog_body">The top score is picked. Any player who reached the target can win, by your house rules.</string>
+    <string name="winner_dialog_tie">It is a tie at the top. Pick the winner.</string>
+    <string name="winner_dialog_confirm">Confirm winner</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>
