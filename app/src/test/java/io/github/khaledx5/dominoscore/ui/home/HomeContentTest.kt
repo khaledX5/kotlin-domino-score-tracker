@@ -22,8 +22,24 @@ class HomeContentTest {
             roundNumber = 2,
             target = 150,
             standings = listOf(
-                StandingUi(playerId = 1, rank = 1, name = "Omar", score = 160, colorIndex = 0, qualified = true),
-                StandingUi(playerId = 2, rank = 2, name = "Mona", score = -20, colorIndex = 1, qualified = false),
+                StandingUi(
+                    playerId = 1,
+                    rank = 1,
+                    name = "Omar",
+                    score = 160,
+                    colorIndex = 0,
+                    qualified = true,
+                    isKing = true,
+                ),
+                StandingUi(
+                    playerId = 2,
+                    rank = 2,
+                    name = "Mona",
+                    score = -20,
+                    colorIndex = 1,
+                    qualified = false,
+                    isKooz = true,
+                ),
             ),
         )
 
@@ -36,6 +52,9 @@ class HomeContentTest {
         composeRule.onNodeWithText("Omar").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Qualified").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("-20").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("👑 KING", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("🪣 KOOZ", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("على الله حكايته 😂", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test

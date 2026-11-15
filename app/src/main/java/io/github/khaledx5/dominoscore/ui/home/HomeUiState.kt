@@ -22,12 +22,14 @@ data class StandingUi(
     val score: Int,
     val colorIndex: Int,
     val qualified: Boolean,
+    val isKing: Boolean = false,
+    val isKooz: Boolean = false,
 )
 
 internal fun GameSnapshot.toActiveGameUi(): ActiveGameUi = ActiveGameUi(
     roundNumber = checkNotNull(game.currentRound) { "An active game always has a round in progress" }.number,
     target = game.target.value,
-    standings = ranking.map { (rank, player) ->
+    standings = ranking.map { (rank, player, isKing, isKooz) ->
         StandingUi(
             playerId = player.id.value,
             rank = rank,
@@ -35,6 +37,8 @@ internal fun GameSnapshot.toActiveGameUi(): ActiveGameUi = ActiveGameUi(
             score = player.score,
             colorIndex = player.colorIndex,
             qualified = player.isQualified(game.target),
+            isKing = isKing,
+            isKooz = isKooz,
         )
     },
 )

@@ -41,6 +41,7 @@ class HomeViewModelTest {
             assertEquals(1, before.roundNumber)
             assertEquals(100, before.target)
             assertEquals(listOf(1, 1, 1), before.standings.map { it.rank })
+            assertEquals(listOf(true, true, true), before.standings.map { it.isKing && it.isKooz })
 
             recordScore(omar, ScoreOperationType.ADD, 120)
 
@@ -48,6 +49,8 @@ class HomeViewModelTest {
             assertEquals(listOf("Omar", "Mona", "Ali"), after.standings.map { it.name })
             assertEquals(listOf(1, 2, 2), after.standings.map { it.rank })
             assertEquals(listOf(true, false, false), after.standings.map { it.qualified })
+            assertEquals(listOf(true, false, false), after.standings.map { it.isKing })
+            assertEquals(listOf(false, true, true), after.standings.map { it.isKooz })
         }
     }
 }
