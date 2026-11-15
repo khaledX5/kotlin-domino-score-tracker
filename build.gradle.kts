@@ -21,20 +21,18 @@ spotless {
     )
 
     kotlin {
-        target("**/*.kt")
-        targetExclude("**/build/**")
+        // Source folders only: walking build/ races with tasks that write there in parallel builds.
+        target("*/src/**/*.kt")
         ktlint(ktlintVersion)
             .editorConfigOverride(ktlintRules + mapOf("compose_allowed_composition_locals" to "LocalGameColors"))
             .customRuleSets(listOf(composeRules))
     }
     kotlinGradle {
-        target("**/*.gradle.kts")
-        targetExclude("**/build/**")
+        target("*.gradle.kts", "*/*.gradle.kts")
         ktlint(ktlintVersion).editorConfigOverride(ktlintRules)
     }
     format("xml") {
-        target("**/src/**/*.xml")
-        targetExclude("**/build/**")
+        target("*/src/**/*.xml")
         trimTrailingWhitespace()
         endWithNewline()
     }
