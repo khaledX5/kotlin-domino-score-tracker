@@ -265,4 +265,39 @@ class RoomGameRepositoryTest {
         assertEquals(-30, repository.findActiveGame()?.players?.first()?.score)
         assertEquals(-30, dao.findScoreOperations(game.id.value).single().newScore)
     }
+
+    @Test
+    fun movesComeNewestFirstWithTheirRoundNumber() = runTest {
+        repository.startGame(
+            NewGame(
+                TargetScore.of(100).getOrNull()!!,
+                listOf("Omar", "Mona").map {
+                    PlayerName.of(it).getOrNull()!!
+                },
+                t0,
+            ),
+        )
+        val game = repository.findActiveGame()!!
+        val (omar, mona) = game.players
+        val round1 = game.currentRound!!.id
+        repository.recordScore(game.id, operation(round1, omar.id, ScoreOperationType.ADD, 20, 0, 20))
+        repository.completeRound(game.id, round1, t1)
+        val round2 = repository.findActiveGame()!!.currentRound!!.id
+        repository.recordScore(game.id, operation(round2, mona.id, ScoreOperationType.PENALTY, 5, 0, -5))
+
+        repository.observeMoves(game.id).test {
+            val moves = awaitItem()
+            assertEquals(listOf(2 to -5, 1 to 20), moves.map { it.roundNumber to it.points })
+            assertEquals(listOf(mona.id, omar.id), moves.map { it.playerId })
+        }
+    }
+
+    private fun operation(
+        round: RoundId,
+        player: PlayerId,
+        type: ScoreOperationType,
+        amount: Int,
+        previous: Int,
+        next: Int,
+    ) = ScoreOperation(round, player, type, ScoreAmount.of(amount).getOrNull()!!, previous, next, t1)
 }

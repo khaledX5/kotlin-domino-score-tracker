@@ -213,6 +213,9 @@ fun GameContent(
             item(key = "ranking") {
                 LiveRankingCard(standings = game.standings)
             }
+            item(key = "history") {
+                RecentMovesCard(moves = game.recentMoves)
+            }
         }
     }
 }

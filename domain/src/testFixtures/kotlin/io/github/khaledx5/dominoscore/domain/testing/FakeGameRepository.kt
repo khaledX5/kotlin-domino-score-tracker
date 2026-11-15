@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.testing
 
+import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
@@ -31,6 +32,7 @@ class FakeGameRepository : GameRepository {
     val completedRounds = mutableListOf<Round>()
     private val operationsByGame = mutableMapOf<GameId, MutableList<ScoreOperation>>()
     private val roundsByGame = mutableMapOf<GameId, MutableList<Round>>()
+    private val moves = MutableStateFlow<List<Pair<GameId, ScoreMove>>>(emptyList())
     var writeCount = 0
         private set
 
@@ -52,6 +54,10 @@ class FakeGameRepository : GameRepository {
     override suspend fun findActiveGame(): Game? = games.value.firstOrNull { it.isActive }
 
     override suspend fun findGame(gameId: GameId): Game? = games.value.firstOrNull { it.id == gameId }
+
+    override fun observeMoves(gameId: GameId): Flow<List<ScoreMove>> = moves
+        .map { all -> all.filter { it.first == gameId }.map { it.second }.reversed() }
+        .distinctUntilChanged()
 
     override fun observeFinishedGames(): Flow<List<Game>> = games
         .map { list ->
@@ -81,6 +87,16 @@ class FakeGameRepository : GameRepository {
     override suspend fun recordScore(gameId: GameId, operation: ScoreOperation) = write(gameId) { game ->
         operations += operation
         operationsByGame.getOrPut(gameId) { mutableListOf() } += operation
+        val move = ScoreMove(
+            id = (moves.value.size + 1).toLong(),
+            roundNumber = checkNotNull(game.currentRound).number,
+            playerId = operation.playerId,
+            type = operation.type,
+            amount = operation.amount.value,
+            newScore = operation.newScore,
+            createdAt = operation.createdAt,
+        )
+        moves.update { it + (gameId to move) }
         game.copy(
             players = game.players.map { if (it.id == operation.playerId) it.copy(score = operation.newScore) else it },
         )

@@ -9,6 +9,7 @@ import io.github.khaledx5.dominoscore.data.local.entity.PlayerEntity
 import io.github.khaledx5.dominoscore.data.local.entity.RoundEntity
 import io.github.khaledx5.dominoscore.data.local.toDomain
 import io.github.khaledx5.dominoscore.data.local.toEntity
+import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
@@ -39,6 +40,20 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
     override suspend fun findActiveGame(): Game? = dao.findActiveGame()?.toDomain()
 
     override suspend fun findGame(gameId: GameId): Game? = dao.findGame(gameId.value)?.toDomain()
+
+    override fun observeMoves(gameId: GameId): Flow<List<ScoreMove>> = dao.observeMoves(gameId.value).map { rows ->
+        rows.map { row ->
+            ScoreMove(
+                id = row.operation.id,
+                roundNumber = row.roundNumber,
+                playerId = PlayerId(row.operation.playerId),
+                type = row.operation.type,
+                amount = row.operation.amount,
+                newScore = row.operation.newScore,
+                createdAt = row.operation.createdAt,
+            )
+        }
+    }
 
     override fun observeFinishedGames(): Flow<List<Game>> =
         dao.observeFinishedGames().map { games -> games.map { it.toDomain() } }

@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.game
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.audio.MusicTrack
+import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
 import io.github.khaledx5.dominoscore.domain.messages.MessageCategory
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
 import io.github.khaledx5.dominoscore.domain.messages.MessageTone
@@ -70,6 +71,7 @@ class GameViewModelTest {
     private fun viewModel() = GameViewModel(
         ObserveActiveGameUseCase(games),
         ObservePlayerMessagesUseCase(messages, { library }),
+        ObserveMovesUseCase(games),
         recordScore,
         ChangeTargetUseCase(games, testClock),
         EndRoundUseCase(games, testClock),
@@ -484,6 +486,25 @@ class GameViewModelTest {
             viewModel.updateRenameText("   ")
             viewModel.confirmRename()
             assertEquals(NameFieldError.BLANK, expectMostRecentItem().rename()?.error)
+        }
+    }
+
+    @Test
+    fun theHistoryShowsTheLastSixMovesNewestFirst() = runTest {
+        startGame(targetScore = 500, playerNames = listOf("Omar", "Mona"))
+        val (omar, mona) = games.activeGame().players
+        listOf(5, 10, 15, 20).forEach { recordScore(omar.id, ScoreOperationType.ADD, it) }
+        EndRoundUseCase(games, testClock)()
+        recordScore(mona.id, ScoreOperationType.PENALTY, 3)
+        recordScore(mona.id, ScoreOperationType.ADD, 25)
+        recordScore(omar.id, ScoreOperationType.PENALTY, 7)
+
+        viewModel().uiState.test {
+            val moves = expectMostRecentItem().game().recentMoves
+            assertEquals(listOf(-7, 25, -3, 20, 15, 10), moves.map { it.points })
+            assertEquals(listOf("Omar", "Mona", "Mona", "Omar", "Omar", "Omar"), moves.map { it.playerName })
+            assertEquals(listOf(2, 2, 2, 1, 1, 1), moves.map { it.roundNumber })
+            assertEquals(listOf(43, 22, -3, 50, 30, 15), moves.map { it.total })
         }
     }
 }

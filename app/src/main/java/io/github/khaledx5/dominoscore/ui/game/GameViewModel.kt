@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.audio.MusicController
+import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
 import io.github.khaledx5.dominoscore.domain.messages.MessageTrigger
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.model.Outcome
@@ -32,19 +33,26 @@ import io.github.khaledx5.dominoscore.domain.usecase.UnknownPlayer
 import io.github.khaledx5.dominoscore.ui.components.withMessages
 import io.github.khaledx5.dominoscore.ui.setup.NameFieldError
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class GameViewModel @Inject constructor(
     observeActiveGame: ObserveActiveGameUseCase,
     observeMessages: ObservePlayerMessagesUseCase,
+    observeMoves: ObserveMovesUseCase,
     private val recordScore: RecordScoreUseCase,
     private val changeTarget: ChangeTargetUseCase,
     private val endRound: EndRoundUseCase,
@@ -66,12 +74,19 @@ class GameViewModel @Inject constructor(
 
     private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, rename, ::ScreenState)
 
+    /** The move query follows the game id, like the messages, so a score does not restart it. */
+    private val moves = observeActiveGame()
+        .map { it?.game?.id }
+        .distinctUntilChanged()
+        .flatMapLatest { gameId -> if (gameId == null) flowOf(emptyList()) else observeMoves(gameId) }
+
     val uiState: StateFlow<GameUiState> = combine(
         observeActiveGame().withMessages(observeMessages),
+        moves,
         music.settings,
         screenState,
         finishing,
-    ) { (snapshot, messages), musicSettings, screen, finish ->
+    ) { (snapshot, messages), allMoves, musicSettings, screen, finish ->
         if (snapshot == null) {
             when (finish) {
                 is Finish.Done -> GameUiState.Finished(finish.gameId)
@@ -80,7 +95,7 @@ class GameViewModel @Inject constructor(
             }
         } else {
             GameUiState.Playing(
-                game = snapshot.toGameUi(messages),
+                game = snapshot.toGameUi(messages, allMoves),
                 music = MusicButtonUi(visible = musicSettings.gameplayEnabled),
                 scoreEntry = screen.scoreEntry,
                 targetEdit = screen.targetEdit,

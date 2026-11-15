@@ -28,6 +28,13 @@ interface GameDao {
     @Query("SELECT * FROM games WHERE id = :gameId")
     suspend fun findGame(gameId: Long): GameWithDetails?
 
+    @Query(
+        "SELECT score_operations.*, rounds.number AS round_number FROM score_operations " +
+            "INNER JOIN rounds ON rounds.id = score_operations.round_id " +
+            "WHERE score_operations.game_id = :gameId ORDER BY score_operations.id DESC",
+    )
+    fun observeMoves(gameId: Long): Flow<List<MoveRow>>
+
     @Transaction
     @Query("SELECT * FROM games WHERE status != 'ACTIVE' ORDER BY started_at DESC, id DESC")
     fun observeFinishedGames(): Flow<List<GameWithDetails>>

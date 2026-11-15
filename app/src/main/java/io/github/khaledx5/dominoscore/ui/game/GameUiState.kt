@@ -1,6 +1,7 @@
 package io.github.khaledx5.dominoscore.ui.game
 
 import androidx.compose.runtime.Immutable
+import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessage
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
@@ -46,6 +47,8 @@ data class GameUi(
     /** Who the table may confirm, from the domain's winner selection. Empty while nobody qualified. */
     val winnerCandidates: List<WinnerCandidateUi> = emptyList(),
     val suggestedWinnerId: Long? = null,
+    /** The newest moves first, at most [RECENT_MOVES]. */
+    val recentMoves: List<MoveUi> = emptyList(),
 ) {
     /** Players at or above the target, in ranking order. Empty while nobody qualified. */
     val qualifiedNames: List<String> get() = standings.filter { it.qualified }.map { it.name }
@@ -90,7 +93,13 @@ data class TargetEditUi(val currentTarget: Int, val text: String, val error: Tar
 @Immutable
 data class MusicButtonUi(val visible: Boolean)
 
-internal fun GameSnapshot.toGameUi(messages: Map<PlayerId, RankingMessage> = emptyMap()): GameUi {
+/** How many moves the game screen shows under the live ranking. */
+const val RECENT_MOVES = 6
+
+internal fun GameSnapshot.toGameUi(
+    messages: Map<PlayerId, RankingMessage> = emptyMap(),
+    moves: List<ScoreMove> = emptyList(),
+): GameUi {
     val standings = toStandings(messages)
     return GameUi(
         roundNumber = checkNotNull(game.currentRound) { "An active game always has a round in progress" }.number,
@@ -101,5 +110,6 @@ internal fun GameSnapshot.toGameUi(messages: Map<PlayerId, RankingMessage> = emp
         primaryAction = primaryAction,
         winnerCandidates = winnerSelection.candidates.map { WinnerCandidateUi(it.id.value, it.name.value, it.score) },
         suggestedWinnerId = (winnerSelection as? WinnerSelection.Suggested)?.suggested?.id?.value,
+        recentMoves = moves.take(RECENT_MOVES).mapNotNull { it.toUi(game.players) },
     )
 }

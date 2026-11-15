@@ -6,11 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
@@ -163,5 +166,32 @@ class GameContentTest {
         composeRule.onAllNodesWithText("Mona")[0].performClick()
 
         assertEquals(listOf("Mona"), renamed)
+    }
+
+    @Test
+    fun theHistorySectionListsMovesWithSignsAndTotals() {
+        val moves = listOf(
+            MoveUi(id = 2, playerName = "Mona", colorIndex = 1, roundNumber = 3, points = -5, total = -5),
+            MoveUi(id = 1, playerName = "Omar", colorIndex = 0, roundNumber = 3, points = 20, total = 60),
+        )
+        composeRule.setContent {
+            DominoTheme {
+                GameContent(
+                    game = game.copy(recentMoves = moves),
+                    music = MusicButtonUi(visible = false),
+                    onBack = {},
+                    onPlayMusic = {},
+                    onAdd = {},
+                    onPenalty = {},
+                    onEditTarget = {},
+                    onPrimaryAction = {},
+                )
+            }
+        }
+
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("History"))
+        composeRule.onNodeWithText("+20").assertExists()
+        composeRule.onNodeWithText("= 60").assertExists()
+        composeRule.onNodeWithText("= -5").assertExists()
     }
 }

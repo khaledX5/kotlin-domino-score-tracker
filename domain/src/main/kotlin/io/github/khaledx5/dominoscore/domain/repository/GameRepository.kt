@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.repository
 
+import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
@@ -28,6 +29,9 @@ interface GameRepository {
     fun observeActiveGame(): Flow<Game?>
 
     suspend fun findActiveGame(): Game?
+
+    /** Every score move of [gameId] with its round number, newest first, emitted again after each new one. */
+    fun observeMoves(gameId: GameId): Flow<List<ScoreMove>>
 
     /** Every COMPLETED or ABANDONED game, newest first, emitted again after every change. */
     fun observeFinishedGames(): Flow<List<Game>>
