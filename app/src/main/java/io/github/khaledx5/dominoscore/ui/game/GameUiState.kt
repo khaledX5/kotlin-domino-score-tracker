@@ -27,6 +27,7 @@ sealed interface GameUiState {
         /** Set once a round was ended here: the screen opens its results, then clears it. */
         val endedRound: Int? = null,
         val winnerPick: WinnerPickUi? = null,
+        val rename: RenameUi? = null,
     ) : GameUiState
 }
 

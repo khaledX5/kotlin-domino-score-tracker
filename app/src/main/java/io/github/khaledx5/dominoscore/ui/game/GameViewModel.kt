@@ -8,6 +8,7 @@ import io.github.khaledx5.dominoscore.domain.messages.MessageTrigger
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
+import io.github.khaledx5.dominoscore.domain.model.PlayerNameError
 import io.github.khaledx5.dominoscore.domain.model.RangeError
 import io.github.khaledx5.dominoscore.domain.model.ScoreAmount
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
@@ -17,15 +18,19 @@ import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidAmount
+import io.github.khaledx5.dominoscore.domain.usecase.InvalidName
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidTarget
+import io.github.khaledx5.dominoscore.domain.usecase.NameTaken
 import io.github.khaledx5.dominoscore.domain.usecase.NoActiveGame
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.RenamePlayerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ScoreLimitReached
 import io.github.khaledx5.dominoscore.domain.usecase.TargetUnchanged
 import io.github.khaledx5.dominoscore.domain.usecase.UnknownPlayer
 import io.github.khaledx5.dominoscore.ui.components.withMessages
+import io.github.khaledx5.dominoscore.ui.setup.NameFieldError
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +49,7 @@ class GameViewModel @Inject constructor(
     private val changeTarget: ChangeTargetUseCase,
     private val endRound: EndRoundUseCase,
     private val endGameWith: ConfirmWinnerUseCase,
+    private val renamePlayer: RenamePlayerUseCase,
     private val trashTalk: RankingMessageEngine,
     private val music: MusicController,
 ) : ViewModel() {
@@ -52,12 +58,13 @@ class GameViewModel @Inject constructor(
     private val targetEdit = MutableStateFlow<TargetEditUi?>(null)
     private val endedRound = MutableStateFlow<Int?>(null)
     private val winnerPick = MutableStateFlow<WinnerPickUi?>(null)
+    private val rename = MutableStateFlow<RenameUi?>(null)
 
     /** While the winner is being saved the game disappears from the database: that is not "the game is gone". */
     private val finishing = MutableStateFlow<Finish>(Finish.None)
     private var endRoundJob: Job? = null
 
-    private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, ::ScreenState)
+    private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, rename, ::ScreenState)
 
     val uiState: StateFlow<GameUiState> = combine(
         observeActiveGame().withMessages(observeMessages),
@@ -79,6 +86,7 @@ class GameViewModel @Inject constructor(
                 targetEdit = screen.targetEdit,
                 endedRound = screen.endedRound,
                 winnerPick = screen.winnerPick,
+                rename = screen.rename,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
@@ -209,6 +217,32 @@ class GameViewModel @Inject constructor(
         endedRound.value = null
     }
 
+    fun openRename(playerId: Long, currentName: String) {
+        rename.value = RenameUi(playerId = playerId, currentName = currentName, text = currentName)
+    }
+
+    fun updateRenameText(text: String) = rename.update { it?.copy(text = text, error = null) }
+
+    fun dismissRename() {
+        rename.value = null
+    }
+
+    /** The domain checks the name; its answer becomes the field error. */
+    fun confirmRename() {
+        val edit = rename.value ?: return
+        viewModelScope.launch {
+            when (val result = renamePlayer(PlayerId(edit.playerId), edit.text)) {
+                is Outcome.Success -> rename.value = null
+
+                is Outcome.Failure -> when (val error = result.error) {
+                    is InvalidName -> rename.value = edit.copy(error = error.error.toFieldError())
+                    NameTaken -> rename.value = edit.copy(error = NameFieldError.DUPLICATE)
+                    NoActiveGame, UnknownPlayer -> rename.value = null
+                }
+            }
+        }
+    }
+
     /** The score is written first; the card animates when the new total arrives from the database. */
     private fun save(entry: ScoreEntryUi, amount: Int) {
         viewModelScope.launch {
@@ -246,6 +280,7 @@ class GameViewModel @Inject constructor(
         val targetEdit: TargetEditUi?,
         val endedRound: Int?,
         val winnerPick: WinnerPickUi?,
+        val rename: RenameUi?,
     )
 
     private companion object {
@@ -263,4 +298,9 @@ private fun RangeError.toEntryError(): ScoreEntryError = when (this) {
 private fun RangeError.toTargetError(): TargetEditError = when (this) {
     RangeError.TOO_LOW -> TargetEditError.TOO_LOW
     RangeError.TOO_HIGH -> TargetEditError.TOO_HIGH
+}
+
+private fun PlayerNameError.toFieldError(): NameFieldError = when (this) {
+    PlayerNameError.BLANK -> NameFieldError.BLANK
+    PlayerNameError.TOO_LONG -> NameFieldError.TOO_LONG
 }

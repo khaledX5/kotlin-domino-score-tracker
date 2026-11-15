@@ -306,7 +306,7 @@ private fun targetErrorText(error: TargetFieldError): String = when (error) {
 }
 
 @Composable
-private fun nameErrorText(error: NameFieldError): String = when (error) {
+internal fun nameErrorText(error: NameFieldError): String = when (error) {
     NameFieldError.BLANK -> stringResource(R.string.error_name_blank)
 
     NameFieldError.TOO_LONG ->

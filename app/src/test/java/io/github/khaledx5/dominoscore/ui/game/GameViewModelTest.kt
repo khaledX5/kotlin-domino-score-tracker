@@ -20,11 +20,13 @@ import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
+import io.github.khaledx5.dominoscore.domain.usecase.RenamePlayerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.testing.FakeMusicSettingsStore
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.RecordingAudio
 import io.github.khaledx5.dominoscore.testing.testClock
+import io.github.khaledx5.dominoscore.ui.setup.NameFieldError
 import kotlin.random.Random
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -72,6 +74,7 @@ class GameViewModelTest {
         ChangeTargetUseCase(games, testClock),
         EndRoundUseCase(games, testClock),
         ConfirmWinnerUseCase(games, testClock),
+        RenamePlayerUseCase(games, testClock),
         trashTalk,
         music,
     )
@@ -438,6 +441,49 @@ class GameViewModelTest {
             viewModel.selectWinner(mona.id.value)
 
             assertEquals(omar.id.value, expectMostRecentItem().winnerPick()!!.selectedId)
+        }
+    }
+
+    private fun GameUiState.rename() = (this as GameUiState.Playing).rename
+
+    @Test
+    fun renamingKeepsThePlayerAndTheScore() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        recordScore(omar.id, ScoreOperationType.ADD, 30)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openRename(omar.id.value, "Omar")
+            viewModel.updateRenameText("  Omar K  ")
+            viewModel.confirmRename()
+
+            val state = expectMostRecentItem()
+            assertEquals(null, state.rename())
+            val card = state.game().players.first()
+            assertEquals("Omar K", card.name)
+            assertEquals(omar.id.value, card.playerId)
+            assertEquals(30, card.score)
+        }
+    }
+
+    @Test
+    fun aTakenOrBlankNameStaysInTheDialogWithAnError() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openRename(omar.id.value, "Omar")
+            viewModel.updateRenameText("mona")
+            viewModel.confirmRename()
+            assertEquals(NameFieldError.DUPLICATE, expectMostRecentItem().rename()?.error)
+
+            viewModel.updateRenameText("   ")
+            viewModel.confirmRename()
+            assertEquals(NameFieldError.BLANK, expectMostRecentItem().rename()?.error)
         }
     }
 }

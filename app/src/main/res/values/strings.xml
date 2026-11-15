@@ -49,6 +49,10 @@
     <string name="summary_close">Close</string>
     <string name="summary_final_ranking">Final ranking</string>
     <string name="summary_play_again">Play again</string>
+    <string name="rename_action">Rename</string>
+    <string name="rename_title">Rename %1$s</string>
+    <string name="rename_label">Name</string>
+    <string name="rename_confirm">Save</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
     <string name="score_delta_add" translatable="false">+%1$d</string>

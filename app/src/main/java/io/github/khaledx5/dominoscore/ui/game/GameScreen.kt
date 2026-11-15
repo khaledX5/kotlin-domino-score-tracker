@@ -30,11 +30,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -98,8 +102,17 @@ fun GameScreen(
                 onPenalty = { viewModel.openScoreEntry(it.playerId, it.name, ScoreOperationType.PENALTY) },
                 onEditTarget = { viewModel.openTargetEdit(current.game.target) },
                 onPrimaryAction = { viewModel.onPrimaryAction(current.game.primaryAction) },
+                onRename = { viewModel.openRename(it.playerId, it.name) },
                 modifier = modifier,
             )
+            current.rename?.let { edit ->
+                RenameDialog(
+                    rename = edit,
+                    onTextChange = viewModel::updateRenameText,
+                    onConfirm = viewModel::confirmRename,
+                    onDismiss = viewModel::dismissRename,
+                )
+            }
             current.winnerPick?.let { pick ->
                 WinnerDialog(
                     pick = pick,
@@ -141,7 +154,10 @@ fun GameContent(
     onEditTarget: () -> Unit,
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
+    onRename: (StandingUi) -> Unit = {},
 ) {
+    KeepScreenOn()
+    val haptics = LocalHapticFeedback.current
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
@@ -164,7 +180,13 @@ fun GameContent(
             )
         },
         bottomBar = {
-            PrimaryActionButton(action = game.primaryAction, onClick = onPrimaryAction)
+            PrimaryActionButton(
+                action = game.primaryAction,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onPrimaryAction()
+                },
+            )
         },
     ) { innerPadding ->
         LazyColumn(
@@ -184,7 +206,7 @@ fun GameContent(
                 }
             }
             items(game.players, key = { it.playerId }) { player ->
-                PlayerCard(player = player) {
+                PlayerCard(player = player, onRename = { onRename(player) }) {
                     ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
                 }
             }
@@ -192,6 +214,16 @@ fun GameContent(
                 LiveRankingCard(standings = game.standings)
             }
         }
+    }
+}
+
+/** A game is played with the phone on the table: the screen must not go dark between hands. */
+@Composable
+private fun KeepScreenOn() {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
     }
 }
 

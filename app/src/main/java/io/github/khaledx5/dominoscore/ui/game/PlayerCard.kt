@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.game
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +50,12 @@ import io.github.khaledx5.dominoscore.ui.theme.Spacing
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Composable ColumnScope.() -> Unit = {}) {
+fun PlayerCard(
+    player: StandingUi,
+    modifier: Modifier = Modifier,
+    onRename: (() -> Unit)? = null,
+    actions: @Composable ColumnScope.() -> Unit = {},
+) {
     val gameColors = DominoThemeExtras.gameColors
     val settled = rememberSettled()
     val border by animateColorAsState(
@@ -63,7 +69,13 @@ fun PlayerCard(player: StandingUi, modifier: Modifier = Modifier, actions: @Comp
         border = BorderStroke(2.dp, border),
     ) {
         Column(modifier = Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            val renameLabel = stringResource(R.string.rename_action)
             Row(
+                modifier = if (onRename == null) {
+                    Modifier
+                } else {
+                    Modifier.clickable(onClickLabel = renameLabel, onClick = onRename)
+                },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.m),
             ) {

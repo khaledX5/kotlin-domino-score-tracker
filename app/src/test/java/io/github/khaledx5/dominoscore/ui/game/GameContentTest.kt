@@ -1,8 +1,10 @@
 package io.github.khaledx5.dominoscore.ui.game
 
+import android.view.View
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -13,6 +15,7 @@ import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -114,5 +117,51 @@ class GameContentTest {
         composeRule.onNodeWithText("End game").assertIsDisplayed()
         composeRule.onNodeWithText("End round").assertDoesNotExist()
         composeRule.onNodeWithText("Omar reached the target").assertIsDisplayed()
+    }
+
+    @Test
+    fun theScreenStaysOnDuringAGame() {
+        lateinit var view: View
+        composeRule.setContent {
+            view = LocalView.current
+            DominoTheme {
+                GameContent(
+                    game = game,
+                    music = MusicButtonUi(visible = false),
+                    onBack = {},
+                    onPlayMusic = {},
+                    onAdd = {},
+                    onPenalty = {},
+                    onEditTarget = {},
+                    onPrimaryAction = {},
+                )
+            }
+        }
+
+        composeRule.runOnIdle { assertTrue(view.keepScreenOn) }
+    }
+
+    @Test
+    fun tappingAPlayersNameOpensRename() {
+        val renamed = mutableListOf<String>()
+        composeRule.setContent {
+            DominoTheme {
+                GameContent(
+                    game = game,
+                    music = MusicButtonUi(visible = false),
+                    onBack = {},
+                    onPlayMusic = {},
+                    onAdd = {},
+                    onPenalty = {},
+                    onEditTarget = {},
+                    onPrimaryAction = {},
+                    onRename = { renamed += it.name },
+                )
+            }
+        }
+
+        composeRule.onAllNodesWithText("Mona")[0].performClick()
+
+        assertEquals(listOf("Mona"), renamed)
     }
 }
