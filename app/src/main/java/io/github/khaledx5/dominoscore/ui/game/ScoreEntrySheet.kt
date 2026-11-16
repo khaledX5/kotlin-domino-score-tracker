@@ -1,6 +1,8 @@
 package io.github.khaledx5.dominoscore.ui.game
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,18 +19,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.domain.model.ScoreAmount
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
-import io.github.khaledx5.dominoscore.ui.components.ChoiceTile
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
 import io.github.khaledx5.dominoscore.ui.theme.forNumbers
@@ -68,12 +72,14 @@ fun ScoreEntrySheet(
                 ),
                 style = MaterialTheme.typography.titleLarge,
             )
+            // 1 to 10 in two even rows of five, for adding and for penalties alike.
             FlowRow(
+                maxItemsInEachRow = QUICK_AMOUNTS_PER_ROW,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 verticalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
                 ScoreEntryUi.QUICK_AMOUNTS.forEach { amount ->
-                    ChoiceTile(selected = false, onClick = { confirm { onQuickAmount(amount) } }) {
+                    QuickAmountTile(onClick = { confirm { onQuickAmount(amount) } }, modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(
                                 if (isPenalty) R.string.score_delta_penalty else R.string.score_delta_add,
@@ -81,6 +87,7 @@ fun ScoreEntrySheet(
                             ),
                             style = MaterialTheme.typography.titleMedium.forNumbers(),
                             color = accent,
+                            maxLines = 1,
                         )
                     }
                 }
@@ -112,6 +119,24 @@ fun ScoreEntrySheet(
         }
     }
 }
+
+/** Like a choice tile, with less side padding so five fit in a row on a small phone. */
+@Composable
+private fun QuickAmountTile(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Box(modifier = Modifier.padding(vertical = Spacing.m), contentAlignment = Alignment.Center) {
+            content()
+        }
+    }
+}
+
+private const val QUICK_AMOUNTS_PER_ROW = 5
 
 @Composable
 private fun entryErrorText(error: ScoreEntryError): String = when (error) {

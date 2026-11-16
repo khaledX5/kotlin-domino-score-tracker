@@ -78,8 +78,8 @@ data class ScoreEntryUi(
     val error: ScoreEntryError? = null,
 ) {
     companion object {
-        /** Common domino hands, one tap each. */
-        val QUICK_AMOUNTS = listOf(5, 10, 15, 20, 25, 50)
+        /** One tap for every amount from 1 to 10; anything else is typed. The same for add and penalty. */
+        val QUICK_AMOUNTS = (1..10).toList()
     }
 }
 

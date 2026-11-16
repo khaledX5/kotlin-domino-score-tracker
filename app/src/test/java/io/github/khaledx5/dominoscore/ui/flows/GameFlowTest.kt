@@ -112,10 +112,10 @@ class GameFlowTest {
         StartGameUseCase(games, testClock)(targetScore = 100, playerNames = listOf("Omar", "Mona"))
         showGame()
 
-        add(seat = 1, amount = 25)
+        add(seat = 1, amount = 7)
 
-        assertEquals(listOf(0, 25), games.activeGame().players.map { it.score })
-        composeRule.onAllNodesWithText("25")[0].assertIsDisplayed()
+        assertEquals(listOf(0, 7), games.activeGame().players.map { it.score })
+        composeRule.onAllNodesWithText("7")[0].assertIsDisplayed()
         composeRule.onAllNodesWithText("👑 KING", useUnmergedTree = true)[0].assertIsDisplayed()
 
         composeRule.onNodeWithText("End round").performClick()
@@ -127,11 +127,11 @@ class GameFlowTest {
 
     @Test
     fun reachingTheTargetEndsTheGameWithTheConfirmedWinner() = runTest {
-        StartGameUseCase(games, testClock)(targetScore = 50, playerNames = listOf("Omar", "Mona"))
+        StartGameUseCase(games, testClock)(targetScore = 10, playerNames = listOf("Omar", "Mona"))
         val gameId = games.activeGame().id
         showGame()
 
-        add(seat = 0, amount = 50)
+        add(seat = 0, amount = 10)
         composeRule.onNodeWithText("End game").performClick()
         composeRule.onNodeWithText("Who won?").assertIsDisplayed()
         composeRule.onNodeWithText("Confirm winner").performClick()
