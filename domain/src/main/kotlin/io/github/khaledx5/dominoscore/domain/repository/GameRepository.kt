@@ -87,6 +87,10 @@ interface GameRepository {
         completedAt: Instant,
     )
 
-    /** Updates the name only: the player id stays, so the score log keeps pointing at the same player. */
+    /**
+     * Gives the seat a new name. The player id stays, so the score log keeps pointing at the same
+     * seat; the seat moves to the profile of the new name (found or created by [PlayerName.key]),
+     * so the new name is the person in history and statistics too.
+     */
     suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant)
 }

@@ -181,7 +181,7 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
     override suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant) =
         database.withTransaction {
             val player = requirePlayerOf(gameId, playerId)
-            dao.updateName(playerId.value, newName.value)
+            dao.updateName(playerId.value, newName.value, profileIdOf(newName, renamedAt))
             dao.insertEvent(
                 GameEventEntity(
                     gameId = gameId.value,

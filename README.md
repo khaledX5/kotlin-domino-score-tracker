@@ -205,7 +205,9 @@ Each game has its own rows in `players`, so before version 3 the app had no idea
 
 I chose the rule the table already uses: **the same name, without case, is the same person.** The name key comes from `PlayerName.key` in the domain, the same rule that stops two players in one game from having the same name, so there are not two definitions of "same name". The setup screen shows the people who played before as one-tap chips, so the table sees which person it is picking.
 
-**Trade-offs.** Two different people called Ali at two different tables are one profile. A rename during a game changes only the name shown in that game; the person stays the same, which is right for a typo and wrong for "actually this is someone else". Both are rare at one table, and proper player management (merge, split, rename a person) is a feature for later, not a reason for a login screen now.
+Changing a name during a game follows the same rule. It is locked behind a "Change players" switch that is off by default, so a stray tap never edits a name. Once a name is changed, the seat keeps its id (and its whole score log) but moves to the profile of the new name, so the new name is what the moves, the history and the statistics show.
+
+**Trade-offs.** Two different people called Ali at two different tables are one profile. A typo fixed mid-game leaves an unused profile behind; it never shows anywhere, because the setup chips and the statistics only list profiles that sat in a game. Proper player management (merge, split, delete a person) is a feature for later, not a reason for a login screen now.
 
 ### 6. Version 3 is migrated by hand, without rebuilding a table
 

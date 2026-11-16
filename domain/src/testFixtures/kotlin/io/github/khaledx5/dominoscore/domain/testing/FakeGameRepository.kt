@@ -150,6 +150,7 @@ class FakeGameRepository : GameRepository {
 
     override suspend fun renamePlayer(gameId: GameId, playerId: PlayerId, newName: PlayerName, renamedAt: Instant) =
         write(gameId) { game ->
+            profileByPlayer[playerId] = profileFor(newName)
             game.copy(players = game.players.map { if (it.id == playerId) it.copy(name = newName) else it })
         }
 

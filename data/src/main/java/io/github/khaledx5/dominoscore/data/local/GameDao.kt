@@ -106,8 +106,8 @@ interface GameDao {
     @Query("UPDATE players SET score = :score WHERE id = :playerId")
     suspend fun updateScore(playerId: Long, score: Int)
 
-    @Query("UPDATE players SET name = :name WHERE id = :playerId")
-    suspend fun updateName(playerId: Long, name: String)
+    @Query("UPDATE players SET name = :name, profile_id = :profileId WHERE id = :playerId")
+    suspend fun updateName(playerId: Long, name: String, profileId: Long)
 
     @Query("UPDATE games SET target_score = :targetScore WHERE id = :gameId")
     suspend fun updateTarget(gameId: Long, targetScore: Int)

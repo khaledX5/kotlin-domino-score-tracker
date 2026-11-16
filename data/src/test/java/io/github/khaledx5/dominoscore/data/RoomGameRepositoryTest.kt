@@ -287,20 +287,39 @@ class RoomGameRepositoryTest {
             assertEquals(listOf(1, 2, 2), game.standings.map { it.rank })
             assertEquals(listOf(true, false, false), game.standings.map { it.isKing })
             assertEquals(listOf(false, true, true), game.standings.map { it.isKooz })
-            // The profile keeps the first spelling; the standing shows the name used in that game.
-            assertEquals("Omar", game.standings[1].profile.name.value)
+            // A renamed seat belongs to the person with the new name.
+            assertEquals("Omar K.", game.standings[1].profile.name.value)
         }
     }
 
     @Test
-    fun aRenameKeepsTheProfile() = runTest {
+    fun aRenameMovesTheSeatToTheProfileOfTheNewName() = runTest {
+        start("Ali", "Sara")
         val game = start("Omar", "Mona")
-        val profile = dao.findPlayer(game.seat(0).value)!!.profileId
+        val ali = dao.findProfiles().first { it.name == "Ali" }.id
 
-        repository.renamePlayer(game.id, game.seat(0), PlayerName.of("Omar K.").getOrNull()!!, t1)
+        repository.renamePlayer(game.id, game.seat(0), PlayerName.of("ali").getOrNull()!!, t1)
+        assertEquals(ali, dao.findPlayer(game.seat(0).value)!!.profileId)
 
-        assertEquals(profile, dao.findPlayer(game.seat(0).value)!!.profileId)
-        assertEquals(listOf("Omar", "Mona"), dao.findProfiles().map { it.name })
+        repository.renamePlayer(game.id, game.seat(1), PlayerName.of("Hana").getOrNull()!!, t1)
+        val hana = dao.findProfiles().single { it.name == "Hana" }.id
+        assertEquals(hana, dao.findPlayer(game.seat(1).value)!!.profileId)
+        assertEquals(game.seat(0), repository.findActiveGame()!!.players[0].id)
+    }
+
+    @Test
+    fun theNewNameIsWhatHistoryAndStatisticsShow() = runTest {
+        val game = start("Omar", "Mona", target = 50)
+        repository.renamePlayer(game.id, game.seat(0), PlayerName.of("Tamer").getOrNull()!!, t1)
+        repository.recordScore(game.id, operation(game.round(), game.seat(0), ScoreOperationType.ADD, 60, 0, 60))
+        val final = repository.findActiveGame()!!
+        repository.completeGame(game.id, game.seat(0), rankPlayers(final.players), t1)
+
+        repository.observeCompletedGames().test {
+            val winner = awaitItem().single().winner
+            assertEquals("Tamer", winner.name.value)
+            assertEquals("Tamer", winner.profile.name.value)
+        }
     }
 
     @Test
