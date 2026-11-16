@@ -135,6 +135,16 @@
     <string name="settings_winner_music">Winner music</string>
     <string name="settings_winner_music_hint">Plays after you confirm the winner</string>
     <string name="settings_volume">Music volume</string>
+    <string name="settings_game_sounds">Game sounds</string>
+    <string name="settings_event_sounds">Event sounds</string>
+    <string name="settings_event_sounds_hint">A short sound once when something big happens at the table</string>
+    <string name="settings_event_second_qualified">A second player reaches the target</string>
+    <string name="settings_event_final_stretch">The top two are 10 points from the target</string>
+    <string name="settings_event_last_player_scores">The last player finally scores</string>
+    <string name="settings_event_equal_scores">Players tie above 25</string>
+    <string name="settings_event_large_penalty">A penalty above 4</string>
+    <string name="settings_visual_reactions">Visual reactions</string>
+    <string name="settings_visual_reactions_hint">A short line at the top of the game with each event</string>
     <!-- Shown in their own language and script, whatever the app language is. -->
     <string name="language_name_english" translatable="false">English</string>
     <string name="language_name_arabic" translatable="false">العربية</string>

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.audio.MusicSettings
 import io.github.khaledx5.dominoscore.audio.MusicSettingsStore
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +42,18 @@ class SettingsViewModel @Inject constructor(
 
     fun setMusicVolume(volume: Float) {
         viewModelScope.launch { musicSettingsStore.setVolume(volume) }
+    }
+
+    fun setEventSoundsEnabled(enabled: Boolean) {
+        viewModelScope.launch { musicSettingsStore.setEventSoundsEnabled(enabled) }
+    }
+
+    fun setEventSoundEnabled(event: GameSoundEvent, enabled: Boolean) {
+        viewModelScope.launch { musicSettingsStore.setEventSoundEnabled(event, enabled) }
+    }
+
+    fun setVisualReactionsEnabled(enabled: Boolean) {
+        viewModelScope.launch { musicSettingsStore.setVisualReactionsEnabled(enabled) }
     }
 
     private companion object {

@@ -152,6 +152,16 @@
     <string name="settings_winner_music">مزيكا الفايز</string>
     <string name="settings_winner_music_hint">بتشتغل بعد ما تأكّد الفايز</string>
     <string name="settings_volume">علو الصوت</string>
+    <string name="settings_game_sounds">أصوات اللعب</string>
+    <string name="settings_event_sounds">أصوات الأحداث</string>
+    <string name="settings_event_sounds_hint">صوت قصير مرة واحدة لما حاجة كبيرة تحصل على الترابيزة</string>
+    <string name="settings_event_second_qualified">لاعب تاني يوصل للنقاط المستهدفة</string>
+    <string name="settings_event_final_stretch">الأول والتاني على بعد 10 نقط من النقاط المستهدفة</string>
+    <string name="settings_event_last_player_scores">آخر لاعب أخيرًا يجيب نقط</string>
+    <string name="settings_event_equal_scores">لاعبين يتعادلوا فوق 25</string>
+    <string name="settings_event_large_penalty">خصم أكبر من 4</string>
+    <string name="settings_visual_reactions">ردود فعل على الشاشة</string>
+    <string name="settings_visual_reactions_hint">جملة قصيرة فوق في الدور مع كل حدث</string>
 
     <string name="setup_title">دور جديد</string>
     <string name="setup_target_title">النقاط المستهدفة</string>

@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -57,30 +58,37 @@ fun MusicOptions(
 }
 
 @Composable
-private fun SwitchRow(
+internal fun SwitchRow(
     title: String,
-    hint: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    hint: String? = null,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.l),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = hint,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (hint != null) {
+                Text(
+                    text = hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         // The whole row toggles, so the switch itself takes no clicks.
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 

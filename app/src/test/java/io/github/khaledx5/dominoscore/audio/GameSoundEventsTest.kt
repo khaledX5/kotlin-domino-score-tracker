@@ -102,6 +102,31 @@ class GameSoundEventsTest {
     }
 
     @Test
+    fun aSwitchedOffEventStaysSilentWhileOthersStillPlay() = runTest {
+        store.setEventSoundEnabled(GameSoundEvent.LARGE_PENALTY, false)
+        val (omar, mona, ali) = start(100, "Omar", "Mona", "Ali")
+        score(omar, 30)
+
+        score(omar, -5)
+        score(mona, 26)
+        score(ali, 1)
+        score(ali, 25)
+
+        assertEquals(listOf(MusicTrack.EVENT_LAST_PLAYER_SCORES, MusicTrack.EVENT_EQUAL_SCORES), events())
+    }
+
+    @Test
+    fun theMasterSwitchSilencesEveryEvent() = runTest {
+        store.setEventSoundsEnabled(false)
+        val (omar, _) = start(100, "Omar", "Mona")
+        score(omar, 30)
+
+        score(omar, -10)
+
+        assertEquals(emptyList<MusicTrack>(), events())
+    }
+
+    @Test
     fun everyEventHasAnEventClip() {
         GameSoundEvent.entries.forEach { assertEquals(true, it.track.isEventSound) }
     }
