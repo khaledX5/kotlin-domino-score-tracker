@@ -33,14 +33,15 @@ class SetupViewModelTest {
 
     @Test
     fun startsWithTwoPlayersAndTheDefaultTarget() {
-        assertEquals(TargetChoice.Preset(SetupUiState.DEFAULT_TARGET), state.targetChoice)
+        assertEquals(TargetChoice.Preset(51), state.targetChoice)
+        assertEquals(listOf(51, 71, 91, 101), SetupUiState.TARGET_PRESETS)
         assertEquals(2, state.playerCount)
         assertEquals(listOf("", ""), state.visibleNames)
     }
 
     @Test
     fun startsTheGameWithThePresetAndTheVisibleNamesOnly() = runTest {
-        viewModel.selectPresetTarget(150)
+        viewModel.selectPresetTarget(91)
         viewModel.selectPlayerCount(4)
         typeNames("Omar", "Mona", "Ali", "Sara")
         viewModel.selectPlayerCount(3)
@@ -49,7 +50,7 @@ class SetupViewModelTest {
 
         assertTrue(state.gameStarted)
         val game = repository.activeGame()
-        assertEquals(150, game.target.value)
+        assertEquals(91, game.target.value)
         assertEquals(listOf("Omar", "Mona", "Ali"), game.players.map { it.name.value })
     }
 

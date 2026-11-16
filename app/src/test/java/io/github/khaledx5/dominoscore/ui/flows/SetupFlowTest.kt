@@ -53,7 +53,7 @@ class SetupFlowTest {
     fun aFilledFormStartsTheGameWithTheChosenTargetAndSeats() {
         showSetup()
 
-        composeRule.onNodeWithText("150").performScrollTo().performClick()
+        composeRule.onNodeWithText("71").performScrollTo().performClick()
         composeRule.onNodeWithText("3").performScrollTo().performClick()
         typeName("Player 1", "Omar")
         typeName("Player 2", "Mona")
@@ -63,7 +63,7 @@ class SetupFlowTest {
 
         assertTrue(started)
         val game = games.activeGame()
-        assertEquals(150, game.target.value)
+        assertEquals(71, game.target.value)
         assertEquals(listOf("Omar", "Mona", "Ali"), game.players.map { it.name.value })
     }
 

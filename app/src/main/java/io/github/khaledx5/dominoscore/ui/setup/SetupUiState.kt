@@ -67,7 +67,8 @@ data class SetupUiState(
     val firstEmptySeat: Int? get() = visibleNames.indexOfFirst { it.isBlank() }.takeIf { it >= 0 }
 
     companion object {
-        val TARGET_PRESETS = listOf(50, 100, 150, 200)
-        const val DEFAULT_TARGET = 100
+        /** The targets tables really play to; anything else goes in the custom field. */
+        val TARGET_PRESETS = listOf(51, 71, 91, 101)
+        const val DEFAULT_TARGET = 51
     }
 }

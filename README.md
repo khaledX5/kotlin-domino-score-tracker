@@ -47,7 +47,7 @@ So this is a small product for a real table, and also the place where I hold And
 | --- | --- |
 | Points that can go below zero | Scores are signed whole numbers; a penalty can take anyone under 0. Overflow is caught, not wrapped. |
 | To always see who is ahead | A live ranking with shared places (150, 100, 100, 50 → 1, 2, 2, 4). The leader is KING, the last is KOOZ, and nobody holds a title while everyone is equal. |
-| To play to 100 today and 150 tomorrow | The target is chosen at setup and can be raised in the middle of a game. Whether a player qualified is always worked out again from the current target. |
+| To play to 51 today and 101 tomorrow | The target is picked at setup (51, 71, 91, 101, or any number typed in) and can be raised in the middle of a game. Whether a player qualified is always worked out again from the current target. |
 | The table decides who won | When someone reaches the target, the only way forward is to confirm a winner or raise the target. A tie at the top is never decided by the app. |
 | A phone that dies mid-game | Every tap is written to the database in one transaction. A killed app or a restart opens the exact same game. |
 | Some fun | 111 approved Egyptian Arabic lines in 22 categories react to what really happened: a comeback, losing the crown by one point, falling from first to last. Never the same line twice in a row for a player. |
