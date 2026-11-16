@@ -2,10 +2,13 @@ package io.github.khaledx5.dominoscore.ui.home
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,5 +73,26 @@ class HomeContentTest {
 
         composeRule.onNodeWithText("Domino Score Tracker").assertIsDisplayed()
         composeRule.onNodeWithText("Game in progress").assertDoesNotExist()
+    }
+
+    @Test
+    fun theTopLeftShortcutOpensGameHistory() {
+        var opened = false
+        composeRule.setContent {
+            DominoTheme {
+                HomeContent(
+                    state = HomeUiState.Ready(activeGame = null),
+                    onNewGame = {},
+                    onContinueGame = {},
+                    onOpenSettings = {},
+                    onOpenHistory = { opened = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Game history").assertIsDisplayed().performClick()
+        assertTrue(opened)
+        composeRule.onNodeWithText("Past games").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Settings").assertIsDisplayed()
     }
 }

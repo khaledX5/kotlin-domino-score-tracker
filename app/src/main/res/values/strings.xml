@@ -53,7 +53,7 @@
     <string name="rename_title">Rename %1$s</string>
     <string name="rename_label">Name</string>
     <string name="rename_confirm">Save</string>
-    <string name="home_history">Past games</string>
+    <string name="home_history">Game history</string>
     <string name="history_title">Game history</string>
     <plurals name="history_player_count">
         <item quantity="one">%1$d player</item>

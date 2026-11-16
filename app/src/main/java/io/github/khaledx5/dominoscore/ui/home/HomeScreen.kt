@@ -11,12 +11,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,7 +75,15 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            // Game history sits top-left (top-right in Arabic) and settings on the other side.
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                IconButton(onClick = onOpenHistory) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_history),
+                        contentDescription = stringResource(R.string.home_history),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
                 IconButton(onClick = onOpenSettings) {
                     Icon(
                         painter = painterResource(R.drawable.ic_settings),
@@ -99,16 +105,6 @@ fun HomeContent(
                     .height(Spacing.primaryButtonHeight),
             ) {
                 Text(stringResource(R.string.home_new_game), style = MaterialTheme.typography.titleMedium)
-            }
-            OutlinedButton(
-                onClick = onOpenHistory,
-                shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(Spacing.primaryButtonHeight),
-            ) {
-                Text(stringResource(R.string.home_history), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
