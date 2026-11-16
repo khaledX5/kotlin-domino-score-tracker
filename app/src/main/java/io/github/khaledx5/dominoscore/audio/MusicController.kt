@@ -62,9 +62,9 @@ class MusicController @Inject constructor(
 
     fun stopGameplayMusic() = audio.stopGameplayMusic()
 
-    /** A moment of the game happened: its clip plays once if its switches are on and the winner tune is not playing. */
+    /** A moment of the game happened: its clip plays once if event sounds are on and the winner tune is not playing. */
     fun playGameEvent(event: GameSoundEvent) {
-        if (settings.value.playsSound(event)) audio.playEventSound(event.track)
+        if (settings.value.eventSoundsEnabled) audio.playEventSound(event.track)
     }
 
     /** Called only after the table confirmed the winner. */

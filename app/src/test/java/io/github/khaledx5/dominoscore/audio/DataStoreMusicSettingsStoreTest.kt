@@ -1,7 +1,6 @@
 package io.github.khaledx5.dominoscore.audio
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -45,24 +44,10 @@ class DataStoreMusicSettingsStoreTest {
     }
 
     @Test
-    fun savesOneEventSwitchAlone() = testScope.runTest {
-        store.setEventSoundEnabled(GameSoundEvent.EQUAL_SCORES, false)
-
-        assertEquals(MusicSettings(mutedEvents = setOf(GameSoundEvent.EQUAL_SCORES)), store.settings.first())
-    }
-
-    @Test
     fun savesTheEventSoundsMasterSwitch() = testScope.runTest {
         store.setEventSoundsEnabled(false)
 
         assertEquals(MusicSettings(eventSoundsEnabled = false), store.settings.first())
-    }
-
-    @Test
-    fun savesTheVisualReactionsSwitch() = testScope.runTest {
-        store.setVisualReactionsEnabled(false)
-
-        assertEquals(MusicSettings(visualReactionsEnabled = false), store.settings.first())
     }
 
     @Test

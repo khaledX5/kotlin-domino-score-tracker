@@ -152,8 +152,8 @@ class GameViewModelTest {
     }
 
     @Test
-    fun withVisualReactionsOffTheSoundStillPlays() = runTest {
-        settings.setVisualReactionsEnabled(false)
+    fun withEventSoundsOffTheReactionStillShows() = runTest {
+        settings.setEventSoundsEnabled(false)
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
         val omar = games.activeGame().players.first()
         recordScore(omar.id, ScoreOperationType.ADD, 30)
@@ -164,8 +164,8 @@ class GameViewModelTest {
             viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.PENALTY)
             viewModel.submitQuickAmount(10)
 
-            assertEquals(null, expectMostRecentItem().reaction())
-            assertEquals(MusicTrack.EVENT_LARGE_PENALTY, recordingAudio.started.last())
+            assertEquals(GameSoundEvent.LARGE_PENALTY, expectMostRecentItem().reaction())
+            assertEquals(false, MusicTrack.EVENT_LARGE_PENALTY in recordingAudio.started)
         }
     }
 

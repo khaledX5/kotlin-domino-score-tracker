@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 /**
  * Turns game commands into event sounds and visual reactions: the detector names at most one event
  * per command, the highest priority one, the music rules decide whether its sound plays, and the
- * game screen shows it when visual reactions are on (sound switched off or not). It only hears
- * commands through the command runner, so opening, scrolling or rotating the game never fires one.
+ * game screen always shows it, sound on or off. It only hears commands through the command runner,
+ * so opening, scrolling or rotating the game never fires one.
  */
 @Singleton
 class GameSoundEvents @Inject constructor(
@@ -31,7 +31,7 @@ class GameSoundEvents @Inject constructor(
         if (!transition.after.isActive) return
         val event = detector.detect(transition) ?: return
         music.playGameEvent(event)
-        if (music.settings.value.visualReactionsEnabled) _reactions.tryEmit(event)
+        _reactions.tryEmit(event)
     }
 }
 

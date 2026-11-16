@@ -52,7 +52,7 @@ So this is a small product for a real table, and also the place where I hold And
 | A phone that dies mid-game | Every tap is written to the database in one transaction. A killed app or a restart opens the exact same game. |
 | Some fun | 111 approved Egyptian Arabic lines in 22 categories react to what really happened: a comeback, losing the crown by one point, falling from first to last. Never the same line twice in a row for a player. |
 | "Who wins most at four players?" | History and statistics are split by table size (2, 3 or 4 players) and never mixed. The leaderboard counts official wins only and gives medals to the top three. |
-| To hear the big moments | A short sound, once, when a second player qualifies, the top two enter the last 10 points, the last player finally scores, players tie above 25, or a penalty is above 4. Each one has its own switch, plus a master switch and an optional line on screen. |
+| To hear the big moments | A short sound, once, when a second player qualifies, the top two enter the last 10 points, the last player finally scores, players tie above 25, or a penalty is above 4. One switch in the settings turns them all on or off, and a short line shows on screen either way. |
 | To send the result to the group | A share image with the winner, the final ranking, KING and KOOZ, in the app language. |
 | Arabic | The whole app in English and Arabic, right-to-left included, with Inter and Cairo fonts bundled. |
 

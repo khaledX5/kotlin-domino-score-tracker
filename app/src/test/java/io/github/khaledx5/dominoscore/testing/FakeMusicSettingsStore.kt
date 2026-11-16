@@ -2,7 +2,6 @@ package io.github.khaledx5.dominoscore.testing
 
 import io.github.khaledx5.dominoscore.audio.MusicSettings
 import io.github.khaledx5.dominoscore.audio.MusicSettingsStore
-import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -20,11 +19,4 @@ class FakeMusicSettingsStore(initial: MusicSettings = MusicSettings()) : MusicSe
     override suspend fun setEventSoundsEnabled(enabled: Boolean) = state.update {
         it.copy(eventSoundsEnabled = enabled)
     }
-
-    override suspend fun setEventSoundEnabled(event: GameSoundEvent, enabled: Boolean) = state.update {
-        it.copy(mutedEvents = if (enabled) it.mutedEvents - event else it.mutedEvents + event)
-    }
-
-    override suspend fun setVisualReactionsEnabled(enabled: Boolean) =
-        state.update { it.copy(visualReactionsEnabled = enabled) }
 }

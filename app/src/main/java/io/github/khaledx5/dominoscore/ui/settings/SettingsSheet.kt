@@ -66,8 +66,6 @@ fun SettingsSheet(
             GameSoundOptions(
                 settings = music,
                 onEventSoundsChange = viewModel::setEventSoundsEnabled,
-                onEventSoundChange = viewModel::setEventSoundEnabled,
-                onVisualReactionsChange = viewModel::setVisualReactionsEnabled,
             )
         }
     }
