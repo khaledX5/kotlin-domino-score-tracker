@@ -29,6 +29,8 @@ sealed interface GameUiState {
         val endedRound: Int? = null,
         val winnerPick: WinnerPickUi? = null,
         val rename: RenameUi? = null,
+        /** Names can be changed only while the table turned "Change players" on. Off on every visit. */
+        val changePlayersEnabled: Boolean = false,
     ) : GameUiState
 }
 

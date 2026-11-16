@@ -448,6 +448,8 @@ class GameViewModelTest {
 
     private fun GameUiState.rename() = (this as GameUiState.Playing).rename
 
+    private fun GameUiState.changePlayersOn() = (this as GameUiState.Playing).changePlayersEnabled
+
     @Test
     fun renamingKeepsThePlayerAndTheScore() = runTest {
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
@@ -457,6 +459,7 @@ class GameViewModelTest {
 
         viewModel.uiState.test {
             expectMostRecentItem()
+            viewModel.toggleChangePlayers()
             viewModel.openRename(omar.id.value, "Omar")
             viewModel.updateRenameText("  Omar K  ")
             viewModel.confirmRename()
@@ -471,6 +474,30 @@ class GameViewModelTest {
     }
 
     @Test
+    fun namesAreLockedUntilChangePlayersIsTurnedOn() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            assertFalse(expectMostRecentItem().changePlayersOn())
+            viewModel.openRename(omar.id.value, "Omar")
+            expectNoEvents()
+
+            viewModel.toggleChangePlayers()
+            viewModel.openRename(omar.id.value, "Omar")
+            val open = expectMostRecentItem()
+            assertTrue(open.changePlayersOn())
+            assertEquals("Omar", open.rename()?.currentName)
+
+            viewModel.toggleChangePlayers()
+            val closed = expectMostRecentItem()
+            assertFalse(closed.changePlayersOn())
+            assertEquals(null, closed.rename())
+        }
+    }
+
+    @Test
     fun aTakenOrBlankNameStaysInTheDialogWithAnError() = runTest {
         startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
         val omar = games.activeGame().players.first()
@@ -478,6 +505,7 @@ class GameViewModelTest {
 
         viewModel.uiState.test {
             expectMostRecentItem()
+            viewModel.toggleChangePlayers()
             viewModel.openRename(omar.id.value, "Omar")
             viewModel.updateRenameText("mona")
             viewModel.confirmRename()

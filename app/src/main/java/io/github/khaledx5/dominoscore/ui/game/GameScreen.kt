@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -43,6 +45,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -106,6 +109,8 @@ fun GameScreen(
                 onPrimaryAction = { viewModel.onPrimaryAction(current.game.primaryAction) },
                 onRename = { viewModel.openRename(it.playerId, it.name) },
                 onSeeAllMoves = onSeeAllMoves,
+                changePlayersEnabled = current.changePlayersEnabled,
+                onToggleChangePlayers = viewModel::toggleChangePlayers,
                 modifier = modifier,
             )
             current.rename?.let { edit ->
@@ -159,6 +164,8 @@ fun GameContent(
     modifier: Modifier = Modifier,
     onRename: (StandingUi) -> Unit = {},
     onSeeAllMoves: () -> Unit = {},
+    changePlayersEnabled: Boolean = false,
+    onToggleChangePlayers: () -> Unit = {},
 ) {
     KeepScreenOn()
     val haptics = LocalHapticFeedback.current
@@ -200,6 +207,9 @@ fun GameContent(
             contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
             verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
+            item(key = "changePlayers") {
+                ChangePlayersSwitch(enabled = changePlayersEnabled, onToggle = onToggleChangePlayers)
+            }
             item(key = "qualified") {
                 AnimatedVisibility(
                     visible = game.qualifiedNames.isNotEmpty(),
@@ -210,7 +220,7 @@ fun GameContent(
                 }
             }
             items(game.players, key = { it.playerId }) { player ->
-                PlayerCard(player = player, onRename = { onRename(player) }) {
+                PlayerCard(player = player, onRename = if (changePlayersEnabled) ({ onRename(player) }) else null) {
                     ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
                 }
             }
@@ -223,6 +233,43 @@ fun GameContent(
                         TextButton(onClick = onSeeAllMoves) { Text(stringResource(R.string.game_history_see_more)) }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * "Change players": off by default, so a tap on a name during play does nothing. While it is on,
+ * a tap on any name opens the rename dialog; the new name then shows everywhere in the game.
+ */
+@Composable
+private fun ChangePlayersSwitch(enabled: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .toggleable(value = enabled, role = Role.Switch, onValueChange = { onToggle() }),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.game_change_players),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                // The whole row toggles; the switch itself only shows the state.
+                Switch(checked = enabled, onCheckedChange = null)
+            }
+            AnimatedVisibility(visible = enabled) {
+                Text(
+                    text = stringResource(R.string.game_change_players_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

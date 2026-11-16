@@ -72,7 +72,11 @@ class GameViewModel @Inject constructor(
     private val finishing = MutableStateFlow<Finish>(Finish.None)
     private var endRoundJob: Job? = null
 
-    private val screenState = combine(scoreEntry, targetEdit, endedRound, winnerPick, rename, ::ScreenState)
+    private val changePlayers = MutableStateFlow(false)
+    private val screenState = combine(
+        combine(scoreEntry, targetEdit, endedRound, winnerPick, rename, ::ScreenState),
+        changePlayers,
+    ) { screen, enabled -> screen.copy(changePlayersEnabled = enabled) }
 
     /** The move query follows the game id, like the messages, so a score does not restart it. */
     private val moves = observeActiveGame()
@@ -102,6 +106,7 @@ class GameViewModel @Inject constructor(
                 endedRound = screen.endedRound,
                 winnerPick = screen.winnerPick,
                 rename = screen.rename,
+                changePlayersEnabled = screen.changePlayersEnabled,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
@@ -232,7 +237,16 @@ class GameViewModel @Inject constructor(
         endedRound.value = null
     }
 
+    /** Turning "Change players" off also closes a rename that is still open. */
+    fun toggleChangePlayers() {
+        val enabled = !changePlayers.value
+        changePlayers.value = enabled
+        if (!enabled) rename.value = null
+    }
+
+    /** Opens the rename dialog, only while "Change players" is on, so a stray tap never edits a name. */
     fun openRename(playerId: Long, currentName: String) {
+        if (!changePlayers.value) return
         rename.value = RenameUi(playerId = playerId, currentName = currentName, text = currentName)
     }
 
@@ -296,6 +310,7 @@ class GameViewModel @Inject constructor(
         val endedRound: Int?,
         val winnerPick: WinnerPickUi?,
         val rename: RenameUi?,
+        val changePlayersEnabled: Boolean = false,
     )
 
     private companion object {

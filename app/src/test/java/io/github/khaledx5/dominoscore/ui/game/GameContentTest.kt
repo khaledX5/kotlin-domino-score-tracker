@@ -48,6 +48,7 @@ class GameContentTest {
         composeRule.onNodeWithText("Round 3").assertIsDisplayed()
         composeRule.onNodeWithText("150 pts").assertIsDisplayed()
         // The score shows on the card and again in the live ranking.
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("-5"))
         composeRule.onAllNodesWithText("-5")[0].assertIsDisplayed()
     }
 
@@ -145,7 +146,8 @@ class GameContentTest {
     }
 
     @Test
-    fun tappingAPlayersNameOpensRename() {
+    fun aNameCanBeChangedOnlyWhileChangePlayersIsOn() {
+        var enabled by mutableStateOf(false)
         val renamed = mutableListOf<String>()
         composeRule.setContent {
             DominoTheme {
@@ -159,10 +161,21 @@ class GameContentTest {
                     onEditTarget = {},
                     onPrimaryAction = {},
                     onRename = { renamed += it.name },
+                    changePlayersEnabled = enabled,
+                    onToggleChangePlayers = { enabled = !enabled },
                 )
             }
         }
 
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Mona"))
+        composeRule.onAllNodesWithText("Mona")[0].performClick()
+        assertEquals(emptyList<String>(), renamed)
+
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Change players"))
+
+        composeRule.onNodeWithText("Change players").performClick()
+        composeRule.onNodeWithText("Tap a player's name to change it", substring = true).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Mona"))
         composeRule.onAllNodesWithText("Mona")[0].performClick()
 
         assertEquals(listOf("Mona"), renamed)
