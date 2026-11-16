@@ -93,7 +93,7 @@ class FakeGameRepository : GameRepository {
             target = newGame.target,
             status = GameStatus.ACTIVE,
             players = newGame.playerNames.mapIndexed { seat, name ->
-                newPlayer(seat, name).also { profileByPlayer[it.id] = profileFor(name) }
+                newPlayer(seat, name, newGame.colorIndexes[seat]).also { profileByPlayer[it.id] = profileFor(name) }
             },
             currentRound = newRound(number = 1, startedAt = newGame.startedAt),
             startedAt = newGame.startedAt,
@@ -200,8 +200,8 @@ class FakeGameRepository : GameRepository {
     private fun abandonIfActive(game: Game): Game =
         if (game.isActive) game.copy(status = GameStatus.ABANDONED, currentRound = null) else game
 
-    private fun newPlayer(seat: Int, name: PlayerName) =
-        Player(id = PlayerId(nextId++), seat = seat, name = name, score = 0, colorIndex = seat)
+    private fun newPlayer(seat: Int, name: PlayerName, colorIndex: Int) =
+        Player(id = PlayerId(nextId++), seat = seat, name = name, score = 0, colorIndex = colorIndex)
 
     private fun newRound(number: Int, startedAt: Instant) =
         Round(id = RoundId(nextId++), number = number, status = RoundStatus.IN_PROGRESS, startedAt = startedAt)

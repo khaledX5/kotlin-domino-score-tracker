@@ -5,6 +5,7 @@ import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.messages.ScoreLog
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
+import io.github.khaledx5.dominoscore.domain.model.PlayerColors
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
 import io.github.khaledx5.dominoscore.domain.model.Profile
@@ -20,7 +21,14 @@ data class NewGame(
     /** Names in seat order: the first name sits on seat 0. */
     val playerNames: List<PlayerName>,
     val startedAt: Instant,
-)
+    /** One palette index per seat, in seat order, all different. */
+    val colorIndexes: List<Int> = PlayerColors.defaultFor(playerNames.size),
+) {
+    init {
+        require(colorIndexes.size == playerNames.size) { "Every seat needs one color" }
+        require(PlayerColors.areValid(colorIndexes)) { "Invalid or repeated colors: $colorIndexes" }
+    }
+}
 
 /**
  * Storage contract of the game. Business rules are checked by the use cases before calling it;

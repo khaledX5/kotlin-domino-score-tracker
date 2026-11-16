@@ -147,6 +147,20 @@
     <string name="setup_names_title">Player names</string>
     <string name="setup_player_placeholder">Player %1$d</string>
     <string name="setup_known_players">Played before</string>
+    <string name="setup_color_button">Color of player %1$d: %2$s. Tap to change</string>
+    <string name="setup_color_title">Color for player %1$d</string>
+    <string name="setup_color_selected_mark" translatable="false">✓</string>
+    <!-- In palette order: index 0 is the first color of GameColors.players. -->
+    <string-array name="player_color_names">
+        <item>Teal</item>
+        <item>Coral</item>
+        <item>Gold</item>
+        <item>Slate</item>
+        <item>Sky blue</item>
+        <item>Lime</item>
+        <item>Orange</item>
+        <item>Pink</item>
+    </string-array>
     <string name="setup_start">Start game</string>
     <string name="setup_replace_title">Start a new game?</string>
     <string name="setup_replace_message">The game in progress will be kept in history as abandoned.</string>

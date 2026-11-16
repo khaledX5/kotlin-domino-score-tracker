@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.Outcome
+import io.github.khaledx5.dominoscore.domain.model.PlayerColors
 import io.github.khaledx5.dominoscore.domain.model.PlayerNameError
 import io.github.khaledx5.dominoscore.domain.model.RangeError
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.rules.RosterIssue
 import io.github.khaledx5.dominoscore.domain.usecase.ActiveGameExists
+import io.github.khaledx5.dominoscore.domain.usecase.InvalidColors
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidRoster
 import io.github.khaledx5.dominoscore.domain.usecase.InvalidTarget
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveKnownPlayersUseCase
@@ -51,7 +53,22 @@ class SetupViewModel @Inject constructor(
 
     fun selectPlayerCount(count: Int) {
         require(count in Game.PLAYER_COUNT) { "Unsupported player count $count" }
-        _uiState.update { it.copy(playerCount = count, nameErrors = emptyMap()) }
+        _uiState.update {
+            it.copy(playerCount = count, nameErrors = emptyMap(), colors = distinctColors(it.colors, count))
+        }
+    }
+
+    fun openColorPicker(seat: Int) = _uiState.update { it.copy(colorPickerSeat = seat) }
+
+    fun dismissColorPicker() = _uiState.update { it.copy(colorPickerSeat = null) }
+
+    /** Gives [seat] the color [colorIndex] if no other player has it, and closes the sheet. */
+    fun pickColor(seat: Int, colorIndex: Int) = _uiState.update { state ->
+        if (colorIndex !in state.availableColors(seat)) {
+            state.copy(colorPickerSeat = null)
+        } else {
+            state.copy(colors = state.colors.toMutableList().apply { set(seat, colorIndex) }, colorPickerSeat = null)
+        }
     }
 
     /** Editing a name clears its own error and every duplicate mark, since a duplicate involves two fields. */
@@ -91,7 +108,7 @@ class SetupViewModel @Inject constructor(
         }
         _uiState.update { it.copy(isStarting = true, confirmReplaceActiveGame = false) }
         viewModelScope.launch {
-            val result = startGame(target, state.visibleNames, replaceActiveGame)
+            val result = startGame(target, state.visibleNames, replaceActiveGame, state.visibleColors)
             _uiState.update { current ->
                 val updated = current.copy(isStarting = false)
                 when (result) {
@@ -99,8 +116,13 @@ class SetupViewModel @Inject constructor(
 
                     is Outcome.Failure -> when (val error = result.error) {
                         ActiveGameExists -> updated.copy(confirmReplaceActiveGame = true)
+
                         is InvalidTarget -> updated.copy(targetError = error.error.toFieldError())
+
                         is InvalidRoster -> updated.copy(nameErrors = error.issues.toFieldErrors())
+
+                        // The sheet only offers free colors, so a clash here means a bug in this ViewModel.
+                        InvalidColors -> error("Setup sent colors ${state.visibleColors}")
                     }
                 }
             }
@@ -110,6 +132,21 @@ class SetupViewModel @Inject constructor(
     private companion object {
         val MAX_TARGET_DIGITS = TargetScore.ALLOWED.last.toString().length
     }
+}
+
+/**
+ * Keeps the first [visible] seats on different colors. A seat that comes back into view with a
+ * color another visible seat took meanwhile gets the first free one.
+ */
+private fun distinctColors(colors: List<Int>, visible: Int): List<Int> {
+    val result = colors.toMutableList()
+    for (seat in 0 until visible) {
+        if (result[seat] in result.take(seat)) {
+            val used = result.take(visible).toSet()
+            result[seat] = PlayerColors.INDICES.first { it !in used }
+        }
+    }
+    return result
 }
 
 private fun RangeError.toFieldError(): TargetFieldError = when (this) {

@@ -42,6 +42,7 @@ sealed interface SummaryUiState {
         val standings: List<StandingUi>,
         val replayNames: List<String> = emptyList(),
         val replayTarget: Int = 0,
+        val replayColors: List<Int> = emptyList(),
         val replayStarted: Boolean = false,
         val completedAt: Instant? = null,
         val isSharing: Boolean = false,
@@ -79,6 +80,7 @@ class SummaryViewModel @Inject constructor(
             standings = standings,
             replayNames = snapshot.game.players.map { it.name.value },
             replayTarget = snapshot.game.target.value,
+            replayColors = snapshot.game.players.map { it.colorIndex },
             completedAt = snapshot.game.completedAt,
         )
     }
@@ -104,13 +106,18 @@ class SummaryViewModel @Inject constructor(
     private fun updateReady(change: (SummaryUiState.Ready) -> SummaryUiState.Ready) =
         _uiState.update { (it as? SummaryUiState.Ready)?.let(change) ?: it }
 
-    /** Same names in the same seats, same target, scores back to zero. */
+    /** Same names and colors in the same seats, same target, scores back to zero. */
     fun playAgain() {
         val ready = _uiState.value as? SummaryUiState.Ready ?: return
         if (ready.replayStarted) return
         viewModelScope.launch {
             // The finished game is no longer active, so nothing is replaced here.
-            if (startGame(ready.replayTarget, ready.replayNames) is Outcome.Success) {
+            if (startGame(
+                    ready.replayTarget,
+                    ready.replayNames,
+                    colorIndexes = ready.replayColors,
+                ) is Outcome.Success
+            ) {
                 _uiState.update { (it as? SummaryUiState.Ready)?.copy(replayStarted = true) ?: it }
             }
         }

@@ -163,6 +163,18 @@
     <string name="setup_names_title">أسامي اللاعيبة</string>
     <string name="setup_player_placeholder">لاعب %1$d</string>
     <string name="setup_known_players">لعبوا قبل كده</string>
+    <string name="setup_color_button">لون لاعب %1$d: %2$s. دوس عشان تغيّره</string>
+    <string name="setup_color_title">لون لاعب %1$d</string>
+    <string-array name="player_color_names">
+        <item>تيل</item>
+        <item>كورال</item>
+        <item>دهبي</item>
+        <item>رمادي غامق</item>
+        <item>أزرق سماوي</item>
+        <item>أخضر ليموني</item>
+        <item>برتقالي</item>
+        <item>بمبي</item>
+    </string-array>
     <string name="setup_start">ابدأ الدور</string>
     <string name="setup_replace_title">تبدأ دور جديد؟</string>
     <string name="setup_replace_message">الدور الشغّال هيتحفظ في السجل إنه مخلصش.</string>

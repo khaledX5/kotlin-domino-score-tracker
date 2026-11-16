@@ -85,7 +85,7 @@ class RoomGameRepository(private val database: DominoDatabase) : GameRepository 
                     seat = seat,
                     name = name.value,
                     score = 0,
-                    colorIndex = seat,
+                    colorIndex = newGame.colorIndexes[seat],
                     profileId = profileIdOf(name, newGame.startedAt),
                 )
             },

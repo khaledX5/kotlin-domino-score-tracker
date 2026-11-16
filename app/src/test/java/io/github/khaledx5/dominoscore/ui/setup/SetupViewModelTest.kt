@@ -220,4 +220,38 @@ class SetupViewModelTest {
         assertNull(setup.uiState.value.firstEmptySeat)
         assertEquals(listOf("Ali", "Sara"), setup.uiState.value.visibleNames)
     }
+
+    @Test
+    fun theColorSheetOffersOnlyColorsNobodyElseHas() {
+        viewModel.selectPlayerCount(3)
+
+        viewModel.openColorPicker(seat = 1)
+
+        assertEquals(1, state.colorPickerSeat)
+        assertEquals(listOf(1, 3, 4, 5, 6, 7), state.availableColors(seat = 1))
+    }
+
+    @Test
+    fun aPickedColorGoesToTheGameAndATakenOneIsIgnored() = runTest {
+        viewModel.pickColor(seat = 0, colorIndex = 6)
+        viewModel.pickColor(seat = 1, colorIndex = 6)
+        assertEquals(listOf(6, 1), state.visibleColors)
+        assertNull(state.colorPickerSeat)
+
+        typeNames("Omar", "Mona")
+        viewModel.start()
+
+        assertEquals(listOf(6, 1), repository.activeGame().players.map { it.colorIndex })
+    }
+
+    @Test
+    fun aSeatThatComesBackGetsAFreeColor() {
+        viewModel.selectPlayerCount(2)
+        viewModel.pickColor(seat = 1, colorIndex = 2)
+
+        viewModel.selectPlayerCount(3)
+
+        assertEquals(3, state.visibleColors.toSet().size)
+        assertEquals(listOf(0, 2), state.visibleColors.take(2))
+    }
 }

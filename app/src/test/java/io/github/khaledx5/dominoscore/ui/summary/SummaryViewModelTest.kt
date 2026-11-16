@@ -116,6 +116,20 @@ class SummaryViewModelTest {
     }
 
     @Test
+    fun playAgainKeepsEveryPlayersColor() = runTest {
+        StartGameUseCase(games, testClock)(50, listOf("Omar", "Mona"), colorIndexes = listOf(7, 4))
+        val (omar, mona) = games.activeGame().players
+        RecordScoreUseCase(games, testClock)(omar.id, ScoreOperationType.ADD, 60)
+        val finishedId = games.activeGame().id.value
+        ConfirmWinnerUseCase(games, testClock)(omar.id)
+
+        viewModel(finishedId).playAgain()
+
+        assertEquals(listOf(7, 4), games.activeGame().players.map { it.colorIndex })
+        assertNotEquals(mona.id, games.activeGame().players[1].id)
+    }
+
+    @Test
     fun theShareButtonHandsTheCardWithTitlesToTheExporter() = runTest {
         val viewModel = viewModel(finishedGame())
         val ready = viewModel.uiState.value as SummaryUiState.Ready

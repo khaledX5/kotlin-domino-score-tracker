@@ -4,6 +4,7 @@ import io.github.khaledx5.dominoscore.domain.T0
 import io.github.khaledx5.dominoscore.domain.fixedClock
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.Outcome
+import io.github.khaledx5.dominoscore.domain.model.PlayerColors
 import io.github.khaledx5.dominoscore.domain.model.RangeError
 import io.github.khaledx5.dominoscore.domain.model.RoundStatus
 import io.github.khaledx5.dominoscore.domain.rules.RosterIssue
@@ -68,5 +69,34 @@ class StartGameUseCaseTest {
 
         assertEquals(GameStatus.ABANDONED, repository.game(oldId).status)
         assertEquals(newId, repository.activeGame().id)
+    }
+
+    @Test
+    fun picksTheColorsTheTableChose() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona", "Ali"), colorIndexes = listOf(5, 0, 7))
+            .valueOrFail()
+
+        assertEquals(listOf(5, 0, 7), repository.activeGame().players.map { it.colorIndex })
+    }
+
+    @Test
+    fun withoutAChoiceTheColorsFollowTheSeats() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona")).valueOrFail()
+
+        assertEquals(listOf(0, 1), repository.activeGame().players.map { it.colorIndex })
+    }
+
+    @Test
+    fun rejectsARepeatedOrUnknownColor() = runTest {
+        assertEquals(
+            Outcome.Failure(InvalidColors),
+            startGame(100, listOf("Omar", "Mona"), colorIndexes = listOf(3, 3)),
+        )
+        assertEquals(
+            Outcome.Failure(InvalidColors),
+            startGame(100, listOf("Omar", "Mona"), colorIndexes = listOf(0, PlayerColors.COUNT)),
+        )
+        assertEquals(Outcome.Failure(InvalidColors), startGame(100, listOf("Omar", "Mona"), colorIndexes = listOf(1)))
+        assertEquals(0, repository.writeCount)
     }
 }

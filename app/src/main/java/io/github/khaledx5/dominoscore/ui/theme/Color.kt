@@ -20,6 +20,17 @@ internal object MidnightTeal {
     val White = Color(0xFFFFFFFF)
 }
 
+/**
+ * Extra colors that only mark players (dots, avatars), so a table of four has enough to choose
+ * from. They never color the interface itself, which stays Midnight Teal. No purple, by brand rule.
+ */
+internal object PlayerOnlyColors {
+    val SkyBlue = Color(0xFF38BDF8)
+    val Lime = Color(0xFF84CC16)
+    val Orange = Color(0xFFF97316)
+    val Pink = Color(0xFFEC4899)
+}
+
 /** A light wash of a palette color on white, for badge and highlight backgrounds. */
 private fun Color.tint(strength: Float): Color = copy(alpha = strength).compositeOver(MidnightTeal.White)
 
@@ -64,5 +75,9 @@ internal val MidnightTealGameColors = GameColors(
         MidnightTeal.Coral,
         MidnightTeal.WarmGold,
         MidnightTeal.DeepSlate,
+        PlayerOnlyColors.SkyBlue,
+        PlayerOnlyColors.Lime,
+        PlayerOnlyColors.Orange,
+        PlayerOnlyColors.Pink,
     ),
 )

@@ -90,9 +90,20 @@ fun SetupScreen(
         onPlayerCountChange = viewModel::selectPlayerCount,
         onNameChange = viewModel::updateName,
         onPickKnownPlayer = viewModel::pickKnownPlayer,
+        onOpenColorPicker = viewModel::openColorPicker,
         onStart = viewModel::start,
         modifier = modifier,
     )
+
+    state.colorPickerSeat?.let { seat ->
+        ColorPickerDialog(
+            seat = seat,
+            current = state.colors[seat],
+            available = state.availableColors(seat),
+            onPick = { viewModel.pickColor(seat, it) },
+            onDismiss = viewModel::dismissColorPicker,
+        )
+    }
 
     if (state.confirmReplaceActiveGame) {
         ReplaceActiveGameDialog(
@@ -115,6 +126,7 @@ fun SetupContent(
     onStart: () -> Unit,
     modifier: Modifier = Modifier,
     onPickKnownPlayer: (String) -> Unit = {},
+    onOpenColorPicker: (seat: Int) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -166,7 +178,12 @@ fun SetupContent(
         ) {
             TargetSection(state, onSelectPreset, onSelectCustom, onCustomTargetChange)
             PlayerCountSection(playerCount = state.playerCount, onPlayerCountChange = onPlayerCountChange)
-            PlayerNamesSection(state = state, onNameChange = onNameChange, onPickKnownPlayer = onPickKnownPlayer)
+            PlayerNamesSection(
+                state = state,
+                onNameChange = onNameChange,
+                onPickKnownPlayer = onPickKnownPlayer,
+                onPickColor = onOpenColorPicker,
+            )
         }
     }
 }
@@ -252,9 +269,9 @@ private fun PlayerNamesSection(
     state: SetupUiState,
     onNameChange: (seat: Int, name: String) -> Unit,
     onPickKnownPlayer: (String) -> Unit,
+    onPickColor: (seat: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val playerColors = DominoThemeExtras.gameColors.players
     SectionCard(
         title = stringResource(R.string.setup_names_title),
         iconRes = R.drawable.ic_person,
@@ -267,11 +284,7 @@ private fun PlayerNamesSection(
                 onValueChange = { onNameChange(seat, it) },
                 placeholder = { Text(stringResource(R.string.setup_player_placeholder, seat + 1)) },
                 leadingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(playerColors[seat % playerColors.size], CircleShape),
-                    )
+                    ColorDot(colorIndex = state.colors[seat], seat = seat, onClick = { onPickColor(seat) })
                 },
                 isError = error != null,
                 supportingText = error?.let { { Text(nameErrorText(it)) } },

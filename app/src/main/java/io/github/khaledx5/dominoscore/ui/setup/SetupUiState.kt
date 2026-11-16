@@ -2,6 +2,7 @@ package io.github.khaledx5.dominoscore.ui.setup
 
 import androidx.compose.runtime.Immutable
 import io.github.khaledx5.dominoscore.domain.model.Game
+import io.github.khaledx5.dominoscore.domain.model.PlayerColors
 import io.github.khaledx5.dominoscore.domain.model.PlayerName
 import io.github.khaledx5.dominoscore.domain.model.getOrNull
 
@@ -40,7 +41,19 @@ data class SetupUiState(
     val confirmReplaceActiveGame: Boolean = false,
     val gameStarted: Boolean = false,
     val knownPlayers: List<String> = emptyList(),
+    /** One palette index per seat, for all four seats like [names]. The visible ones are all different. */
+    val colors: List<Int> = PlayerColors.defaultFor(Game.PLAYER_COUNT.last),
+    /** The seat whose color sheet is open. */
+    val colorPickerSeat: Int? = null,
 ) {
+    val visibleColors: List<Int> get() = colors.take(playerCount)
+
+    /** The colors [seat] may switch to: its own, and every color no other visible seat has. */
+    fun availableColors(seat: Int): List<Int> {
+        val taken = visibleColors.filterIndexed { other, _ -> other != seat }.toSet()
+        return PlayerColors.INDICES.filter { it !in taken }
+    }
+
     val visibleNames: List<String> get() = names.take(playerCount)
 
     /** Known people not typed in yet (without case), offered as one-tap picks. */

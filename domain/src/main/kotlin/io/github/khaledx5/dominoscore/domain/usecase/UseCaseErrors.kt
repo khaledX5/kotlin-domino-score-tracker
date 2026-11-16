@@ -35,6 +35,9 @@ data class InvalidTarget(val error: RangeError) :
 
 data class InvalidRoster(val issues: List<RosterIssue>) : StartGameError
 
+/** A color outside the palette, a color used twice, or not one color per player. */
+data object InvalidColors : StartGameError
+
 /** Starting a new game needs the table to confirm, because the active one will be abandoned. */
 data object ActiveGameExists : StartGameError
 
