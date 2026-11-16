@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Domino Score Tracker</string>
+    <string name="loading_getting_ready">Getting things ready…</string>
+    <string name="loading_ready">Ready!</string>
     <string name="home_tagline">Keep score of every domino game</string>
     <string name="home_active_game_title">Game in progress</string>
     <string name="home_active_game_details">Round %1$d · Target %2$d</string>

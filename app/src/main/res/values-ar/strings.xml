@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">سكور الدومينو</string>
+    <string name="loading_getting_ready">بنجهّز كل حاجة…</string>
+    <string name="loading_ready">جاهزين!</string>
     <string name="home_tagline">احسب سكور كل دور دومينو</string>
     <string name="home_active_game_title">دور شغّال</string>
     <string name="home_active_game_details">الجولة %1$d · النقاط المستهدفة %2$d</string>

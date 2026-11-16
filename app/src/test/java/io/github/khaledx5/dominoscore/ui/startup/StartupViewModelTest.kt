@@ -5,6 +5,7 @@ import io.github.khaledx5.dominoscore.domain.repository.GameRepository
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
+import io.github.khaledx5.dominoscore.ui.startup.StartupViewModel.Companion.SYSTEM_SPLASH_HOLD_MS
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onStart
@@ -27,18 +28,40 @@ class StartupViewModelTest {
     }
 
     @Test
-    fun aFastDatabaseIsReadyAtOnce() = runTest {
+    fun aFastDatabaseIsReadyAtOnceAndNeverShowsTheLoadingScreen() = runTest {
         val viewModel = StartupViewModel(ObserveActiveGameUseCase(games))
 
+        assertEquals(StartupUiState.Ready, viewModel.uiState.value)
+        advanceTimeBy(SYSTEM_SPLASH_HOLD_MS * 4)
         assertEquals(StartupUiState.Ready, viewModel.uiState.value)
     }
 
     @Test
-    fun waitsForTheFirstDatabaseRead() = runTest {
+    fun aReadThatEndsDuringTheHoldGoesStraightFromTheSplashToReady() = runTest {
+        val viewModel = StartupViewModel(ObserveActiveGameUseCase(slowDatabase(millis = 300)))
+
+        advanceTimeBy(299)
+        assertEquals(StartupUiState.SystemSplash, viewModel.uiState.value)
+
+        advanceTimeBy(2)
+        assertEquals(StartupUiState.Ready, viewModel.uiState.value)
+
+        advanceTimeBy(SYSTEM_SPLASH_HOLD_MS * 4)
+        assertEquals(StartupUiState.Ready, viewModel.uiState.value)
+    }
+
+    @Test
+    fun aSlowReadHandsOverToTheLoadingScreenAndLeavesItAsSoonAsItIsDone() = runTest {
         val viewModel = StartupViewModel(ObserveActiveGameUseCase(slowDatabase(millis = 2_000)))
 
-        advanceTimeBy(1_999)
+        advanceTimeBy(SYSTEM_SPLASH_HOLD_MS - 1)
         assertEquals(StartupUiState.SystemSplash, viewModel.uiState.value)
+
+        advanceTimeBy(2)
+        assertEquals(StartupUiState.LoadingScreen, viewModel.uiState.value)
+
+        advanceTimeBy(2_000 - SYSTEM_SPLASH_HOLD_MS - 2)
+        assertEquals(StartupUiState.LoadingScreen, viewModel.uiState.value)
 
         advanceTimeBy(2)
         assertEquals(StartupUiState.Ready, viewModel.uiState.value)

@@ -5,6 +5,9 @@ enum class StartupUiState {
     /** The system splash still covers the window. */
     SystemSplash,
 
+    /** Startup ran past the system splash's short hold, so the animated loading screen took over. */
+    LoadingScreen,
+
     /** The database answered its first read, so the screens can be shown. */
     Ready,
 }
