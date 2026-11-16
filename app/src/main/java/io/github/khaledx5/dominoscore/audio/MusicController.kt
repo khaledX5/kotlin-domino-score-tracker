@@ -37,13 +37,16 @@ class MusicController @Inject constructor(
                 if (!current.gameplayEnabled) audio.stopGameplayMusic()
             }
         }
-        // The game ended or another one replaced it: its music stops with it.
+        // The game ended or another one replaced it: its laugh and event sounds stop with it.
         scope.launch {
             observeActiveGame()
                 .map { it?.game?.id }
                 .distinctUntilChanged()
                 .drop(1)
-                .collect { audio.stopGameplayMusic() }
+                .collect {
+                    audio.stopGameplayMusic()
+                    audio.stopEventSound()
+                }
         }
     }
 

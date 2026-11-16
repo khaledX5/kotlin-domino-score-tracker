@@ -31,5 +31,9 @@ class RecordingAudio {
 
             override fun abandon() = Unit
         },
+        elapsedTime = { now },
     )
+
+    /** The fake clock of the event cooldown. */
+    var now = 0L
 }

@@ -11,34 +11,36 @@ enum class GameplayMusicState {
     PLAYING,
 }
 
+/** Milliseconds since boot, behind an interface so the event cooldown can be tested on the JVM. */
+fun interface ElapsedTime {
+    fun millis(): Long
+}
+
 /**
- * Plays the app's tunes. Both play once, like a doorbell: tapping again starts the tune over,
- * and a finished tune releases its player. One tune at a time, never both. Missing or unreadable
- * files simply mean no sound. Call from the main thread.
+ * Plays the app's sounds. Each plays once, like a doorbell, and a finished one releases its player.
+ * Only one sound plays at a time, by priority: the winner tune, then game event sounds, then the
+ * laugh. Missing or unreadable files simply mean no sound. Call from the main thread.
  */
 @Singleton
 class GameAudioManager @Inject constructor(
     private val playerFactory: MusicPlayerFactory,
     private val audioFocus: AudioFocus,
+    private val elapsedTime: ElapsedTime,
 ) {
     private val _gameplayState = MutableStateFlow(GameplayMusicState.STOPPED)
     val gameplayState: StateFlow<GameplayMusicState> = _gameplayState.asStateFlow()
 
     private var gameplayPlayer: MusicPlayer? = null
+    private var eventPlayer: MusicPlayer? = null
     private var winnerPlayer: MusicPlayer? = null
+    private var lastEventStartedAt: Long? = null
     private var volume = FULL_VOLUME
 
-    /** Plays the gameplay tune once from the start, cutting off a tune that is still playing. */
+    /** Plays the gameplay tune once from the start. It is a tap, so it cuts off whatever is playing. */
     fun playGameplayMusic() {
         stopAllMusic()
-        val player = playerFactory.create(MusicTrack.GAMEPLAY, onCompletion = ::stopGameplayMusic) ?: return
-        if (!audioFocus.request(::onFocusChange)) {
-            player.release()
-            return
-        }
+        val player = start(MusicTrack.GAMEPLAY, onCompletion = ::stopGameplayMusic) ?: return
         gameplayPlayer = player
-        player.setVolume(volume)
-        player.start()
         _gameplayState.value = GameplayMusicState.PLAYING
     }
 
@@ -49,21 +51,36 @@ class GameAudioManager @Inject constructor(
         abandonFocusIfSilent()
     }
 
-    /** Stops the gameplay tune first, so the two never overlap. */
+    /**
+     * Plays a game event sound once. The winner tune is never interrupted, and an event within
+     * [EVENT_COOLDOWN_MS] of the last one is dropped, so rapid taps never stack sounds. Otherwise it
+     * replaces an older event sound or the laugh.
+     */
+    fun playEventSound(track: MusicTrack) {
+        require(track.isEventSound) { "$track is not a game event sound" }
+        if (winnerPlayer != null) return
+        val now = elapsedTime.millis()
+        if (lastEventStartedAt?.let { now - it < EVENT_COOLDOWN_MS } == true) return
+        stopAllMusic()
+        eventPlayer = start(track, onCompletion = ::stopEventSound) ?: return
+        lastEventStartedAt = now
+    }
+
+    fun stopEventSound() {
+        eventPlayer?.release()
+        eventPlayer = null
+        abandonFocusIfSilent()
+    }
+
+    /** Stops everything else first, so nothing ever overlaps the winner tune. */
     fun playWinnerMusic() {
         stopAllMusic()
-        val player = playerFactory.create(MusicTrack.WINNER, onCompletion = ::stopWinnerMusic) ?: return
-        if (!audioFocus.request(::onFocusChange)) {
-            player.release()
-            return
-        }
-        winnerPlayer = player
-        player.setVolume(volume)
-        player.start()
+        winnerPlayer = start(MusicTrack.WINNER, onCompletion = ::stopWinnerMusic)
     }
 
     fun stopAllMusic() {
         stopGameplayMusic()
+        stopEventSound()
         stopWinnerMusic()
     }
 
@@ -74,6 +91,18 @@ class GameAudioManager @Inject constructor(
 
     fun release() = stopAllMusic()
 
+    /** Loads and starts [track], or returns null when the file is missing or focus is refused. */
+    private fun start(track: MusicTrack, onCompletion: () -> Unit): MusicPlayer? {
+        val player = playerFactory.create(track, onCompletion) ?: return null
+        if (!audioFocus.request(::onFocusChange)) {
+            player.release()
+            return null
+        }
+        player.setVolume(volume)
+        player.start()
+        return player
+    }
+
     private fun stopWinnerMusic() {
         winnerPlayer?.release()
         winnerPlayer = null
@@ -81,15 +110,16 @@ class GameAudioManager @Inject constructor(
     }
 
     private fun abandonFocusIfSilent() {
-        if (gameplayPlayer == null && winnerPlayer == null) audioFocus.abandon()
+        if (gameplayPlayer == null && eventPlayer == null && winnerPlayer == null) audioFocus.abandon()
     }
 
     private fun applyVolume(value: Float) {
         gameplayPlayer?.setVolume(value)
+        eventPlayer?.setVolume(value)
         winnerPlayer?.setVolume(value)
     }
 
-    /** A short tune is not worth resuming: a call or another app simply ends it. */
+    /** A short sound is not worth resuming: a call or another app simply ends it. */
     private fun onFocusChange(change: FocusChange) {
         when (change) {
             FocusChange.LOST, FocusChange.LOST_TRANSIENTLY -> stopAllMusic()
@@ -98,9 +128,11 @@ class GameAudioManager @Inject constructor(
         }
     }
 
-    private companion object {
-        const val SILENT = 0f
-        const val FULL_VOLUME = 1f
-        const val DUCK_FACTOR = 0.2f
+    companion object {
+        /** A second event this soon after the last one is dropped. */
+        const val EVENT_COOLDOWN_MS = 1_500L
+        private const val SILENT = 0f
+        private const val FULL_VOLUME = 1f
+        private const val DUCK_FACTOR = 0.2f
     }
 }

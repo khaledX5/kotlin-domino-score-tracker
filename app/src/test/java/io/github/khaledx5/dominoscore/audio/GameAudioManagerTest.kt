@@ -4,6 +4,7 @@ import io.github.khaledx5.dominoscore.audio.GameplayMusicState.PLAYING
 import io.github.khaledx5.dominoscore.audio.GameplayMusicState.STOPPED
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -54,7 +55,9 @@ class GameAudioManagerTest {
             if (filesMissing) null else FakePlayer(track, onCompletion).also { created += it }
         },
         audioFocus = focus,
+        elapsedTime = { now },
     )
+    private var now = 10_000L
 
     private fun gameplay() = created.last { it.track == MusicTrack.GAMEPLAY }
 
@@ -199,5 +202,111 @@ class GameAudioManagerTest {
 
         assertTrue(winner().released)
         assertEquals(STOPPED, audio.gameplayState.value)
+    }
+
+    private fun event() = created.last { it.track.isEventSound }
+
+    @Test
+    fun anEventSoundPlaysOnceAndReleasesItselfWhenItEnds() {
+        audio.playEventSound(MusicTrack.EVENT_EQUAL_SCORES)
+
+        assertTrue(event().playing)
+        event().onCompletion()
+
+        assertTrue(event().released)
+        assertFalse(focus.held)
+    }
+
+    @Test
+    fun anEventSoundCutsTheLaugh() {
+        audio.playGameplayMusic()
+
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+
+        assertTrue(gameplay().released)
+        assertTrue(event().playing)
+        assertEquals(STOPPED, audio.gameplayState.value)
+    }
+
+    @Test
+    fun aLaughTapCutsAnEventSound() {
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+
+        audio.playGameplayMusic()
+
+        assertTrue(event().released)
+        assertTrue(gameplay().playing)
+    }
+
+    @Test
+    fun theWinnerTuneIsNeverInterruptedByAnEvent() {
+        audio.playWinnerMusic()
+
+        audio.playEventSound(MusicTrack.EVENT_FINAL_STRETCH)
+
+        assertTrue(winner().playing)
+        assertTrue(created.none { it.track.isEventSound })
+    }
+
+    @Test
+    fun theWinnerTuneStopsAnEventSound() {
+        audio.playEventSound(MusicTrack.EVENT_FINAL_STRETCH)
+
+        audio.playWinnerMusic()
+
+        assertTrue(event().released)
+        assertTrue(winner().playing)
+    }
+
+    @Test
+    fun aSecondEventWithinTheCooldownIsDropped() {
+        audio.playEventSound(MusicTrack.EVENT_EQUAL_SCORES)
+        now += GameAudioManager.EVENT_COOLDOWN_MS - 1
+
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+
+        assertEquals(listOf(MusicTrack.EVENT_EQUAL_SCORES), created.filter { it.track.isEventSound }.map { it.track })
+        assertTrue(event().playing)
+    }
+
+    @Test
+    fun aLaterEventReplacesOneStillPlayingWithoutOverlap() {
+        audio.playEventSound(MusicTrack.EVENT_EQUAL_SCORES)
+        val first = event()
+        now += GameAudioManager.EVENT_COOLDOWN_MS
+
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+
+        assertTrue(first.released)
+        assertEquals(MusicTrack.EVENT_LARGE_PENALTY, event().track)
+        assertEquals(1, created.count { it.playing })
+    }
+
+    @Test
+    fun aMissingEventFileIsSilentAndStartsNoCooldown() {
+        filesMissing = true
+        audio.playEventSound(MusicTrack.EVENT_EQUAL_SCORES)
+        filesMissing = false
+
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+
+        assertTrue(event().playing)
+    }
+
+    @Test
+    fun losingFocusOrGoingToTheBackgroundStopsAnEventSound() {
+        audio.playEventSound(MusicTrack.EVENT_EQUAL_SCORES)
+        focus.listener!!(FocusChange.LOST_TRANSIENTLY)
+        assertTrue(event().released)
+
+        now += GameAudioManager.EVENT_COOLDOWN_MS
+        audio.playEventSound(MusicTrack.EVENT_LARGE_PENALTY)
+        audio.stopAllMusic()
+        assertTrue(event().released)
+    }
+
+    @Test
+    fun onlyEventTracksCanBePlayedAsEvents() {
+        assertThrows(IllegalArgumentException::class.java) { audio.playEventSound(MusicTrack.WINNER) }
     }
 }
