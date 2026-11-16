@@ -87,13 +87,15 @@ flowchart TB
         ui[Compose screens]
         vm[ViewModels<br/>StateFlow of UI state]
         di[Hilt modules]
-        side[Audio, share image, message library loader]
+        side[Audio with sound priority, share image, message library loader]
     end
 
     subgraph domain [":domain — pure Kotlin, no Android"]
         rules[Rules<br/>score math, ranking, KING / KOOZ,<br/>qualification, winner]
+        runner[Command runner<br/>one before / after snapshot per command]
         usecases[Use cases]
         engine[Trash talk engine<br/>event detection, message picking]
+        sounds[Sound event detector<br/>one event per command, by priority]
         stats[History and statistics]
         ports[Repository interfaces]
     end
@@ -103,7 +105,9 @@ flowchart TB
         repos[Repositories<br/>one transaction per write]
     end
 
-    ui --> vm --> usecases
+    ui --> vm --> runner --> usecases
+    runner -. after each command .-> engine
+    runner -. after each command .-> sounds
     usecases --> rules
     usecases --> ports
     engine --> ports
@@ -133,24 +137,26 @@ sequenceDiagram
     participant U as Table
     participant S as Game screen
     participant VM as GameViewModel
-    participant E as Trash talk engine
+    participant C as GameCommandRunner
     participant UC as RecordScoreUseCase
     participant R as RoomGameRepository
     participant DB as Room / SQLite
+    participant L as Listeners (trash talk, sounds)
 
     U->>S: taps +25 for Mona
     S->>VM: submitQuickAmount(25)
-    VM->>E: record the score and react
-    E->>E: ranking before
-    E->>UC: RecordScore(Mona, ADD, 25)
+    VM->>C: run(Score(Mona, ADD, 25))
+    C->>R: read the table before
+    C->>UC: RecordScore(Mona, ADD, 25)
     UC->>UC: overflow-safe math, round in progress?
     UC->>R: recordScore(operation)
     R->>DB: one transaction: append to the score log + update the player's score
-    E->>E: ranking after → events (LAST_TO_FIRST, TIED_FIRST, ...)
-    E->>R: save one message per affected player
+    C->>R: read the table after
+    C->>L: one transition (command, before, after)
+    L->>L: trash talk saves a line per affected player, sounds play at most one clip
     DB-->>VM: Flow emits the new game
     VM-->>S: new UI state
-    S-->>U: 25 counts up, Mona gets the crown and a line
+    S-->>U: 25 counts up, Mona gets the crown, a line and maybe a sound
 ```
 
 The screen never waits for the animation, and the animation never waits for the screen: if the app is killed at step 7, the score is there when it opens again.
@@ -182,7 +188,7 @@ Room, with the schema of every version exported to `data/schemas/` and committed
 
 `:domain` is a Kotlin/JVM module. It has the score arithmetic, the ranking, the KING and KOOZ rules, qualification, the winner suggestion, the trash talk engine and the statistics, and none of it knows what a `Context`, a `ViewModel` or a `@Dao` is. Values are checked where they are made: a `TargetScore`, a `ScoreAmount` or a `PlayerName` that exists is already valid, and a failure comes back as a typed `Outcome`, not an exception.
 
-**Trade-off.** More types and a mapping step in `:data`. In exchange, 177 domain tests run in a couple of seconds, and a rule like "a tie at the top is never decided by the app" is tested in one place instead of in every screen.
+**Trade-off.** More types and a mapping step in `:data`. In exchange, 211 domain tests run in a couple of seconds, and a rule like "a tie at the top is never decided by the app" is tested in one place instead of in every screen.
 
 ### 2. Every tap is one transaction
 
@@ -243,13 +249,13 @@ Trash talk (decision 7) and the game event sounds both need the table right befo
 The sound detector is a pure function over that transition, so every rule is a plain unit test. Each event is a change from "not true before" to "true after": a tie that just stays a tie, or a final stretch that lasts several taps, plays once. One command plays at most one sound, the highest in a fixed priority order. The audio manager still plays one sound at a time: the winner tune is never interrupted, an event replaces the laugh, a tap on the laugh cuts an event, and a second event within 1.5 seconds is dropped so quick taps never stack.
 
 
-433 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
+430 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
 
 | Module | Count | Runs against | What it proves |
 | --- | --- | --- | --- |
 | `:domain` | 211 | Plain JVM, in-memory fakes | Score math and overflow, ranking with ties, KING and KOOZ, qualification after target changes, winner selection, every trash talk event and its priority, every game sound event and its priority, message picking without repeats, statistics and leaderboard order |
 | `:data` | 26 | Room on Robolectric (real SQLite) | Transactions roll back on failure, the score log and moves, profiles by name, frozen standings, both migrations |
-| `:app` | 196 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, sound priority and cooldown, Arabic strings and plural forms |
+| `:app` | 193 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, sound priority and cooldown, Arabic strings and plural forms |
 
 Some things I wanted proven, not assumed:
 
