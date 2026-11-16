@@ -18,6 +18,7 @@ data class FinalStanding(
     val profile: Profile,
     val name: PlayerName,
     val score: Int,
+    val colorIndex: Int,
     val rank: Int,
     val isKing: Boolean,
     val isKooz: Boolean,

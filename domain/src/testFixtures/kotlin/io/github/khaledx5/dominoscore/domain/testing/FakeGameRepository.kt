@@ -83,14 +83,6 @@ class FakeGameRepository : GameRepository {
         .map { all -> all.filter { it.first == gameId }.map { it.second }.reversed() }
         .distinctUntilChanged()
 
-    override fun observeFinishedGames(): Flow<List<Game>> = games
-        .map { list ->
-            list.filterNot {
-                it.isActive
-            }.sortedWith(compareByDescending<Game> { it.startedAt }.thenByDescending { it.id.value })
-        }
-        .distinctUntilChanged()
-
     override suspend fun findScoreLog(gameId: GameId): ScoreLog =
         ScoreLog(roundsByGame[gameId].orEmpty().toList(), operationsByGame[gameId].orEmpty().toList())
 
@@ -197,6 +189,7 @@ class FakeGameRepository : GameRepository {
                 profile = profileByPlayer.getValue(player.id),
                 name = player.name,
                 score = player.score,
+                colorIndex = player.colorIndex,
                 rank = ranked.rank,
                 isKing = ranked.isKing,
                 isKooz = ranked.isKooz,

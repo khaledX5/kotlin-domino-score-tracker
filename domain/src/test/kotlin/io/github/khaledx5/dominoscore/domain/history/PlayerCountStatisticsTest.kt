@@ -45,6 +45,7 @@ class PlayerCountStatisticsTest {
                     profile = person,
                     name = person.name,
                     score = score,
+                    colorIndex = index,
                     rank = index + 1,
                     isKing = index == 0,
                     isKooz = index == results.lastIndex,

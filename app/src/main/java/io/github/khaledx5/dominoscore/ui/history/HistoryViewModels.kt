@@ -5,8 +5,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.khaledx5.dominoscore.domain.history.CompletedGame
 import io.github.khaledx5.dominoscore.domain.history.GetGameDetailUseCase
-import io.github.khaledx5.dominoscore.domain.history.ObserveGameHistoryUseCase
+import io.github.khaledx5.dominoscore.domain.history.ObservePlayerCountHistoryUseCase
+import io.github.khaledx5.dominoscore.domain.history.PlayerCountHistory
+import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.domain.model.GameId
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
@@ -14,15 +17,18 @@ import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
 import java.time.Instant
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** One past game in the list. [winnerName] is null for a game that was abandoned. */
+/** The game shown on the detail screen. [winnerName] is null for a game that was abandoned. */
 @Immutable
 data class PastGameUi(
     val gameId: Long,
@@ -31,12 +37,6 @@ data class PastGameUi(
     val winnerName: String?,
     val standings: List<StandingUi>,
 )
-
-sealed interface HistoryUiState {
-    data object Loading : HistoryUiState
-
-    data class Ready(val games: List<PastGameUi>) : HistoryUiState
-}
 
 internal fun GameSnapshot.toPastGameUi() = PastGameUi(
     gameId = game.id.value,
@@ -48,14 +48,86 @@ internal fun GameSnapshot.toPastGameUi() = PastGameUi(
     standings = toStandings(),
 )
 
+/** One completed game in the history list, with its standings as they were frozen. */
+@Immutable
+data class CompletedGameUi(
+    val gameId: Long,
+    val completedAt: Instant,
+    val durationMinutes: Long,
+    val rounds: Int,
+    val winnerName: String,
+    val winnerScore: Int,
+    val standings: List<StandingUi>,
+)
+
+internal fun CompletedGame.toUi() = CompletedGameUi(
+    gameId = id.value,
+    completedAt = completedAt,
+    durationMinutes = duration.toMinutes(),
+    rounds = roundCount,
+    winnerName = winner.name.value,
+    winnerScore = winner.score,
+    standings = standings.map {
+        StandingUi(
+            playerId = it.playerId.value,
+            rank = it.rank,
+            name = it.name.value,
+            score = it.score,
+            colorIndex = it.colorIndex,
+            qualified = false,
+            isKing = it.isKing,
+            isKooz = it.isKooz,
+        )
+    },
+)
+
+sealed interface HistoryContentState {
+    /** Before the first read of the selected category. */
+    data object Loading : HistoryContentState
+
+    @Immutable
+    data class Ready(val games: List<CompletedGameUi>) : HistoryContentState
+}
+
+/** The selected table size and what was played at it. Every size is its own category. */
+@Immutable
+data class HistoryUiState(
+    val playerCount: Int = DEFAULT_PLAYER_COUNT,
+    val content: HistoryContentState = HistoryContentState.Loading,
+) {
+    companion object {
+        val DEFAULT_PLAYER_COUNT = Game.PLAYER_COUNT.first
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class HistoryViewModel @Inject constructor(observeHistory: ObserveGameHistoryUseCase) : ViewModel() {
-    val uiState: StateFlow<HistoryUiState> = observeHistory()
-        .map { games -> HistoryUiState.Ready(games.map { it.toPastGameUi() }) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HistoryUiState.Loading)
+class HistoryViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    observeHistory: ObservePlayerCountHistoryUseCase,
+) : ViewModel() {
+
+    private val playerCount = savedStateHandle.getStateFlow(PLAYER_COUNT_KEY, HistoryUiState.DEFAULT_PLAYER_COUNT)
+
+    val uiState: StateFlow<HistoryUiState> = playerCount
+        .flatMapLatest { count ->
+            observeHistory(count)
+                .map<PlayerCountHistory, HistoryContentState> { history ->
+                    HistoryContentState.Ready(history.games.map { it.toUi() })
+                }
+                .onStart { emit(HistoryContentState.Loading) }
+                .map { content -> HistoryUiState(playerCount = count, content = content) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HistoryUiState())
+
+    fun selectPlayerCount(count: Int) {
+        require(count in Game.PLAYER_COUNT) { "Unsupported player count $count" }
+        savedStateHandle[PLAYER_COUNT_KEY] = count
+    }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val PLAYER_COUNT_KEY = "playerCount"
     }
 }
 

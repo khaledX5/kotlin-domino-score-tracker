@@ -8,8 +8,6 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperation
 import io.github.khaledx5.dominoscore.domain.repository.GameRepository
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 /** One round of a past game: what each player won or lost in it, and the totals after it. */
 data class RoundBreakdown(
@@ -47,12 +45,6 @@ fun breakDownRounds(players: List<Player>, log: ScoreLog): List<RoundBreakdown> 
 
 /** A finished or abandoned game with its ranking and its rounds. */
 data class GameDetail(val snapshot: GameSnapshot, val rounds: List<RoundBreakdown>)
-
-class ObserveGameHistoryUseCase @Inject constructor(private val repository: GameRepository) {
-    /** Every game that is no longer in progress, newest first. */
-    operator fun invoke(): Flow<List<GameSnapshot>> =
-        repository.observeFinishedGames().map { games -> games.map(GameSnapshot::of) }
-}
 
 class GetGameDetailUseCase @Inject constructor(private val repository: GameRepository) {
     suspend operator fun invoke(gameId: GameId): GameDetail? {

@@ -1,5 +1,10 @@
 package io.github.khaledx5.dominoscore.ui.history
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,13 +38,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
+import io.github.khaledx5.dominoscore.domain.model.Game
 import io.github.khaledx5.dominoscore.ui.components.StandingRow
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
+import io.github.khaledx5.dominoscore.ui.theme.Motion
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
 import java.time.Instant
 import java.time.ZoneId
@@ -51,38 +63,50 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HistoryContent(state = state, onBack = onBack, onOpenGame = onOpenGame, modifier = modifier)
+    HistoryContent(
+        state = state,
+        onBack = onBack,
+        onSelectPlayerCount = viewModel::selectPlayerCount,
+        onOpenGame = onOpenGame,
+        modifier = modifier,
+    )
 }
 
-/** Past games, newest first: when, the target, who won (or that it was left unfinished) and the final scores. */
+/**
+ * Completed games split by table size: 2, 3 and 4 players never mix. Each card shows the
+ * confirmed winner, the frozen final ranking with KING and KOOZ, and when and how long it was.
+ */
 @Composable
 fun HistoryContent(
     state: HistoryUiState,
     onBack: () -> Unit,
+    onSelectPlayerCount: (Int) -> Unit,
     onOpenGame: (gameId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ScreenScaffold(title = stringResource(R.string.history_title), onBack = onBack, modifier = modifier) { padding ->
-        when (state) {
-            HistoryUiState.Loading -> Loading(padding)
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            PlayerCountSelector(
+                selected = state.playerCount,
+                onSelect = onSelectPlayerCount,
+                modifier = Modifier.padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
+            )
+            AnimatedContent(
+                targetState = state,
+                contentKey = { it.playerCount to (it.content is HistoryContentState.Ready) },
+                transitionSpec = { fadeIn(tween(Motion.QUICK_MS)) togetherWith fadeOut(tween(Motion.QUICK_MS)) },
+                label = "historyCategory",
+                modifier = Modifier.weight(1f),
+            ) { shown ->
+                when (val content = shown.content) {
+                    // Reading one category takes a moment; a blank frame is calmer than a spinner flash.
+                    HistoryContentState.Loading -> Box(Modifier.fillMaxSize())
 
-            is HistoryUiState.Ready -> if (state.games.isEmpty()) {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.history_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    is HistoryContentState.Ready -> GameList(
+                        games = content.games,
+                        playerCount = shown.playerCount,
+                        onOpenGame = onOpenGame,
                     )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m),
-                ) {
-                    items(state.games, key = { it.gameId }) { game ->
-                        PastGameCard(game = game, onClick = { onOpenGame(game.gameId) })
-                    }
                 }
             }
         }
@@ -90,25 +114,111 @@ fun HistoryContent(
 }
 
 @Composable
-private fun PastGameCard(game: PastGameUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PlayerCountSelector(selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val counts = Game.PLAYER_COUNT.toList()
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+        counts.forEachIndexed { index, count ->
+            SegmentedButton(
+                selected = count == selected,
+                onClick = { onSelect(count) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = counts.size),
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                    inactiveContainerColor = MaterialTheme.colorScheme.surface,
+                ),
+                icon = {},
+                label = { Text(pluralStringResource(R.plurals.history_player_count, count, count)) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameList(games: List<CompletedGameUi>, playerCount: Int, onOpenGame: (gameId: Long) -> Unit) {
+    if (games.isEmpty()) {
+        EmptyCategory(text = pluralStringResource(R.plurals.history_empty_category, playerCount, playerCount))
+        return
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        items(games, key = { it.gameId }) { game ->
+            CompletedGameCard(game = game, onClick = { onOpenGame(game.gameId) })
+        }
+    }
+}
+
+@Composable
+private fun EmptyCategory(text: String) {
+    Box(Modifier.fillMaxSize().padding(Spacing.xl), contentAlignment = Alignment.Center) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun CompletedGameCard(game: CompletedGameUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column(modifier = Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            GameHeadline(game)
+        Column(modifier = Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
+                Text(
+                    text = stringResource(R.string.history_winner, game.winnerName),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = game.winnerScore.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = DominoThemeExtras.gameColors.king,
+                )
+            }
             Text(
-                text = game.standings.joinToString(separator = "  ·  ") { "${it.name} ${it.score}" },
-                style = MaterialTheme.typography.bodyMedium,
+                text = gameFacts(game),
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
             )
+            game.standings.forEach { StandingRow(it) }
         }
     }
 }
+
+/** "16 Nov 2026, 21:40 · 5 rounds · 35 min", in the app language. */
+@Composable
+private fun gameFacts(game: CompletedGameUi): String = listOf(
+    rememberFormattedDate(game.completedAt),
+    pluralStringResource(R.plurals.history_rounds, game.rounds, game.rounds),
+    durationText(game.durationMinutes),
+).joinToString(separator = stringResource(R.string.history_facts_separator))
+
+@Composable
+private fun durationText(minutes: Long): String {
+    val hours = (minutes / MINUTES_PER_HOUR).toInt()
+    val rest = (minutes % MINUTES_PER_HOUR).toInt()
+    return if (hours == 0) {
+        stringResource(R.string.duration_minutes, rest)
+    } else {
+        stringResource(R.string.duration_hours_minutes, hours, rest)
+    }
+}
+
+private const val MINUTES_PER_HOUR = 60
 
 @Composable
 private fun GameHeadline(game: PastGameUi) {

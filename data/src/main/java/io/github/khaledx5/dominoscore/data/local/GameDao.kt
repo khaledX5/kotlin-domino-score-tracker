@@ -38,10 +38,6 @@ interface GameDao {
     fun observeMoves(gameId: Long): Flow<List<MoveRow>>
 
     @Transaction
-    @Query("SELECT * FROM games WHERE status != 'ACTIVE' ORDER BY started_at DESC, id DESC")
-    fun observeFinishedGames(): Flow<List<GameWithDetails>>
-
-    @Transaction
     @Query("SELECT * FROM games WHERE status = 'COMPLETED' ORDER BY completed_at DESC, id DESC")
     fun observeCompletedGames(): Flow<List<CompletedGameRow>>
 

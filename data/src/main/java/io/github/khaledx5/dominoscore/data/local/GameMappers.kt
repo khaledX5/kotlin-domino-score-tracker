@@ -54,6 +54,7 @@ private fun SeatWithResult.toFinalStanding(): Pair<FinalStanding, Int> {
         profile = person.toDomain(),
         name = PlayerName.of(player.name).requireStored("name of player ${player.id}"),
         score = player.score,
+        colorIndex = player.colorIndex,
         rank = result.rank,
         isKing = result.isKing,
         isKooz = result.isKooz,

@@ -1,8 +1,6 @@
 package io.github.khaledx5.dominoscore.domain.history
 
-import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.domain.fixedClock
-import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
@@ -53,18 +51,5 @@ class GameHistoryTest {
 
         assertEquals(listOf(1 to true, 2 to false), rounds.map { it.number to it.completed })
         assertEquals(15, rounds.last().totalsAfter.getValue(omar.id))
-    }
-
-    @Test
-    fun historyListsFinishedGamesNewestFirstWithoutTheActiveOne() = runTest {
-        startGame(50, listOf("Omar", "Mona"))
-        startGame(60, listOf("Ali", "Sara"), replaceActiveGame = true)
-        startGame(70, listOf("Hana", "Tamer"), replaceActiveGame = true)
-
-        ObserveGameHistoryUseCase(games)().test {
-            val history = awaitItem()
-            assertEquals(listOf(60, 50), history.map { it.game.target.value })
-            assertEquals(listOf(GameStatus.ABANDONED, GameStatus.ABANDONED), history.map { it.game.status })
-        }
     }
 }

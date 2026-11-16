@@ -36,9 +36,6 @@ interface GameRepository {
     /** Every score move of [gameId] with its round number, newest first, emitted again after each new one. */
     fun observeMoves(gameId: GameId): Flow<List<ScoreMove>>
 
-    /** Every COMPLETED or ABANDONED game, newest first, emitted again after every change. */
-    fun observeFinishedGames(): Flow<List<Game>>
-
     /** Every COMPLETED game with its frozen standings, the latest completed first, emitted again after every change. */
     fun observeCompletedGames(): Flow<List<CompletedGame>>
 

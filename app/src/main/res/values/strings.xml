@@ -54,8 +54,22 @@
     <string name="rename_label">Name</string>
     <string name="rename_confirm">Save</string>
     <string name="home_history">Past games</string>
-    <string name="history_title">Past games</string>
-    <string name="history_empty">Finished games will show up here.</string>
+    <string name="history_title">Game history</string>
+    <plurals name="history_player_count">
+        <item quantity="one">%1$d player</item>
+        <item quantity="other">%1$d players</item>
+    </plurals>
+    <plurals name="history_empty_category">
+        <item quantity="one">No finished games with %1$d player yet.</item>
+        <item quantity="other">No finished games with %1$d players yet.</item>
+    </plurals>
+    <plurals name="history_rounds">
+        <item quantity="one">%1$d round</item>
+        <item quantity="other">%1$d rounds</item>
+    </plurals>
+    <string name="history_facts_separator">" · "</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <string name="history_winner">🏆 %1$s won</string>
     <string name="history_abandoned">Not finished</string>
     <string name="history_date_target">%1$s · target %2$d</string>

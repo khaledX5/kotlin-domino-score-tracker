@@ -10,7 +10,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.domain.history.GetGameDetailUseCase
-import io.github.khaledx5.dominoscore.domain.history.ObserveGameHistoryUseCase
+import io.github.khaledx5.dominoscore.domain.history.ObservePlayerCountHistoryUseCase
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
@@ -50,33 +50,89 @@ class HistoryTest {
         return gameId
     }
 
+    private fun historyViewModel() = HistoryViewModel(SavedStateHandle(), ObservePlayerCountHistoryUseCase(games))
+
     @Test
-    fun theListShowsWinnersAndUnfinishedGames() = runTest {
+    fun startsOnTwoPlayersWithOnlyTheirCompletedGames() = runTest {
         playAndFinish()
-        StartGameUseCase(games, testClock)(targetScore = 100, playerNames = listOf("Ali", "Sara"))
-        StartGameUseCase(games, testClock)(100, listOf("Hana", "Tamer"), replaceActiveGame = true)
+        StartGameUseCase(games, testClock)(100, listOf("Ali", "Sara"), replaceActiveGame = true)
+        StartGameUseCase(games, testClock)(100, listOf("Hana", "Tamer", "Omar"), replaceActiveGame = true)
 
-        HistoryViewModel(ObserveGameHistoryUseCase(games)).uiState.test {
-            val ready = expectMostRecentItem() as HistoryUiState.Ready
-            assertEquals(listOf(null, "Omar"), ready.games.map { it.winnerName })
-
-            var opened: Long? = null
-            composeRule.setContent {
-                DominoTheme { HistoryContent(state = ready, onBack = {}, onOpenGame = { opened = it }) }
-            }
-            composeRule.onNodeWithText("Not finished").assertIsDisplayed()
-            composeRule.onNodeWithText("🏆 Omar won").assertIsDisplayed().performClick()
-            assertEquals(ready.games.last().gameId, opened)
+        historyViewModel().uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(2, state.playerCount)
+            val ready = state.content as HistoryContentState.Ready
+            // The abandoned 2-player game is not in history; the active 3-player game neither.
+            assertEquals(listOf("Omar"), ready.games.map { it.winnerName })
+            val game = ready.games.single()
+            assertEquals(2, game.rounds)
+            assertEquals(55, game.winnerScore)
+            assertEquals(listOf("Omar" to true, "Mona" to false), game.standings.map { it.name to it.isKing })
+            assertEquals(listOf(false, true), game.standings.map { it.isKooz })
         }
     }
 
     @Test
-    fun anEmptyHistorySaysSo() {
-        composeRule.setContent {
-            DominoTheme { HistoryContent(state = HistoryUiState.Ready(emptyList()), onBack = {}, onOpenGame = {}) }
+    fun switchingThePlayerCountShowsThatCategoryOnly() = runTest {
+        playAndFinish()
+        val viewModel = historyViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(1, (expectMostRecentItem().content as HistoryContentState.Ready).games.size)
+
+            viewModel.selectPlayerCount(3)
+
+            val three = expectMostRecentItem()
+            assertEquals(3, three.playerCount)
+            assertEquals(emptyList<CompletedGameUi>(), (three.content as HistoryContentState.Ready).games)
+        }
+    }
+
+    @Test
+    fun theListShowsTheWinnerTheRankingAndOpensTheGame() = runTest {
+        val gameId = playAndFinish()
+        val ready = historyViewModel().uiState.let { flow ->
+            var state: HistoryUiState? = null
+            flow.test { state = expectMostRecentItem() }
+            state!!
         }
 
-        composeRule.onNodeWithText("Finished games will show up here.").assertIsDisplayed()
+        var opened: Long? = null
+        var selected: Int? = null
+        composeRule.setContent {
+            DominoTheme {
+                HistoryContent(
+                    state = ready,
+                    onBack = {},
+                    onSelectPlayerCount = { selected = it },
+                    onOpenGame = { opened = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("2 rounds", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("👑 KING", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("🪣 KOOZ", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("🏆 Omar won").assertIsDisplayed().performClick()
+        assertEquals(gameId, opened)
+        composeRule.onNodeWithText("4 players").performClick()
+        assertEquals(4, selected)
+    }
+
+    @Test
+    fun anEmptyCategorySaysWhichTableSizeHasNoGames() {
+        composeRule.setContent {
+            DominoTheme {
+                HistoryContent(
+                    state = HistoryUiState(playerCount = 3, content = HistoryContentState.Ready(emptyList())),
+                    onBack = {},
+                    onSelectPlayerCount = {},
+                    onOpenGame = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("No finished games with 3 players yet.").assertIsDisplayed()
     }
 
     @Test
