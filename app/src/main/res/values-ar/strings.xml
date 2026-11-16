@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">سكور الدومينو</string>
+    <string name="home_tagline">احسب سكور كل دور دومينو</string>
+    <string name="home_active_game_title">دور شغّال</string>
+    <string name="home_active_game_details">الجولة %1$d · الهدف %2$d</string>
+    <string name="qualified">وصل للهدف</string>
+    <string name="home_new_game">دور جديد</string>
+    <string name="home_continue_game">كمّل الدور</string>
+    <string name="game_round">الجولة %1$d</string>
+    <plurals name="points_value">
+        <item quantity="zero">%1$d نقطة</item>
+        <item quantity="one">%1$d نقطة</item>
+        <item quantity="two">%1$d نقطة</item>
+        <item quantity="few">%1$d نقاط</item>
+        <item quantity="many">%1$d نقطة</item>
+        <item quantity="other">%1$d نقطة</item>
+    </plurals>
+    <string name="game_laugh">ضحكة</string>
+    <string name="game_live_ranking">الترتيب دلوقتي</string>
+    <plurals name="game_qualified_title">
+        <item quantity="zero">%1$s وصلوا للهدف</item>
+        <item quantity="one">%1$s وصل للهدف</item>
+        <item quantity="two">%1$s وصلوا للهدف</item>
+        <item quantity="few">%1$s وصلوا للهدف</item>
+        <item quantity="many">%1$s وصلوا للهدف</item>
+        <item quantity="other">%1$s وصلوا للهدف</item>
+    </plurals>
+    <string name="game_qualified_body">أكّد مين الفايز، أو ارفع الهدف وكمّلوا لعب.</string>
+    <string name="target_dialog_title">غيّر الهدف</string>
+    <string name="target_dialog_body">كل اللاعيبة هيتقارنوا بالهدف الجديد على طول.</string>
+    <string name="target_dialog_label">الهدف الجديد</string>
+    <string name="target_dialog_confirm">غيّر</string>
+    <plurals name="points_unit">
+        <item quantity="zero">نقطة</item>
+        <item quantity="one">نقطة</item>
+        <item quantity="two">نقطة</item>
+        <item quantity="few">نقاط</item>
+        <item quantity="many">نقطة</item>
+        <item quantity="other">نقطة</item>
+    </plurals>
+    <string name="error_target_unchanged">ده الهدف الحالي أصلاً</string>
+    <string name="game_end_round">خلّص الجولة</string>
+    <string name="game_end_game">خلّص الدور</string>
+    <string name="round_results_title">نهاية الجولة %1$d</string>
+    <string name="round_results_body">السكور مكمّل معاكم في الجولة %1$d.</string>
+    <string name="round_results_continue">كمّل الدور</string>
+    <string name="winner_dialog_title">مين كسب؟</string>
+    <string name="winner_dialog_body">اخترنا أعلى سكور. أي حد وصل للهدف ينفع يكسب، حسب قواعد قعدتكم.</string>
+    <string name="winner_dialog_tie">فيه تعادل على القمة. اختاروا الفايز.</string>
+    <string name="winner_dialog_confirm">أكّد الفايز</string>
+    <string name="summary_wins">%1$s كسب!</string>
+    <string name="summary_close">قفل</string>
+    <string name="summary_final_ranking">الترتيب النهائي</string>
+    <string name="summary_play_again">العبوا تاني</string>
+    <string name="share_result">شارك النتيجة</string>
+    <string name="share_chooser_title">شارك النتيجة</string>
+    <string name="share_failed">معرفناش نعمل الصورة. جرّب تاني.</string>
+    <string name="share_target">الهدف %1$d</string>
+    <string name="rename_action">غيّر الاسم</string>
+    <string name="rename_title">غيّر اسم %1$s</string>
+    <string name="rename_label">الاسم</string>
+    <string name="rename_confirm">احفظ</string>
+    <string name="home_history">سجل الأدوار</string>
+    <string name="history_title">سجل الأدوار</string>
+    <plurals name="history_player_count">
+        <item quantity="zero">%1$d لاعيبة</item>
+        <item quantity="one">لاعب واحد</item>
+        <item quantity="two">لاعبين</item>
+        <item quantity="few">%1$d لاعيبة</item>
+        <item quantity="many">%1$d لاعب</item>
+        <item quantity="other">%1$d لاعب</item>
+    </plurals>
+    <plurals name="history_empty_category">
+        <item quantity="zero">لسه مفيش أدوار خلصت بـ %1$d لاعيبة.</item>
+        <item quantity="one">لسه مفيش أدوار خلصت بلاعب واحد.</item>
+        <item quantity="two">لسه مفيش أدوار خلصت بلاعبين.</item>
+        <item quantity="few">لسه مفيش أدوار خلصت بـ %1$d لاعيبة.</item>
+        <item quantity="many">لسه مفيش أدوار خلصت بـ %1$d لاعب.</item>
+        <item quantity="other">لسه مفيش أدوار خلصت بـ %1$d لاعب.</item>
+    </plurals>
+    <plurals name="history_rounds">
+        <item quantity="zero">%1$d جولة</item>
+        <item quantity="one">جولة واحدة</item>
+        <item quantity="two">جولتين</item>
+        <item quantity="few">%1$d جولات</item>
+        <item quantity="many">%1$d جولة</item>
+        <item quantity="other">%1$d جولة</item>
+    </plurals>
+    <string name="history_tab_history">السجل</string>
+    <string name="history_tab_statistics">الإحصائيات</string>
+    <plurals name="stats_empty_category">
+        <item quantity="zero">الإحصائيات هتظهر بعد أول دور يخلص بـ %1$d لاعيبة.</item>
+        <item quantity="one">الإحصائيات هتظهر بعد أول دور يخلص بلاعب واحد.</item>
+        <item quantity="two">الإحصائيات هتظهر بعد أول دور يخلص بلاعبين.</item>
+        <item quantity="few">الإحصائيات هتظهر بعد أول دور يخلص بـ %1$d لاعيبة.</item>
+        <item quantity="many">الإحصائيات هتظهر بعد أول دور يخلص بـ %1$d لاعب.</item>
+        <item quantity="other">الإحصائيات هتظهر بعد أول دور يخلص بـ %1$d لاعب.</item>
+    </plurals>
+    <string name="stats_total_games">عدد الأدوار</string>
+    <string name="stats_total_players">عدد اللاعيبة</string>
+    <string name="stats_leaderboard">لوحة الصدارة</string>
+    <plurals name="stats_games">
+        <item quantity="zero">%1$d دور</item>
+        <item quantity="one">دور واحد</item>
+        <item quantity="two">دورين</item>
+        <item quantity="few">%1$d أدوار</item>
+        <item quantity="many">%1$d دور</item>
+        <item quantity="other">%1$d دور</item>
+    </plurals>
+    <string name="stats_win_rate">نسبة الفوز %1$d%%</string>
+    <string name="stats_average">المتوسط %1$s</string>
+    <!-- No multiplication sign: in a right-to-left line it lands after the number and reads oddly. -->
+    <string name="stats_titles">👑 %1$d · 🪣 %2$d</string>
+    <string name="duration_under_a_minute">أقل من دقيقة</string>
+    <string name="duration_minutes">%1$d د</string>
+    <string name="duration_hours_minutes">%1$d س %2$d د</string>
+    <string name="history_winner">🏆 %1$s كسب</string>
+    <string name="history_abandoned">مخلصش</string>
+    <string name="history_date_target">%1$s · الهدف %2$d</string>
+    <string name="detail_title">تفاصيل الدور</string>
+    <string name="detail_round_unfinished">الجولة %1$d (مخلصتش)</string>
+    <string name="game_history">الحركات</string>
+    <string name="game_history_empty">كل إضافة وكل خصم هيظهروا هنا، الأحدث فوق.</string>
+    <string name="game_history_see_more">شوف الكل</string>
+    <string name="game_add">زوّد</string>
+    <string name="game_penalty">اخصم</string>
+    <string name="score_sheet_add_title">زوّد نقط لـ %1$s</string>
+    <string name="score_sheet_penalty_title">اخصم من %1$s</string>
+    <string name="score_sheet_custom_label">رقم تاني</string>
+    <string name="score_sheet_save">احفظ</string>
+    <string name="error_amount_too_low">اكتب %1$d على الأقل</string>
+    <string name="error_amount_too_high">اكتب %1$d بالكتير</string>
+    <string name="error_score_limit">المجموع ده أكبر من اللازم</string>
+    <string name="navigate_back">رجوع</string>
+    <string name="cancel">إلغاء</string>
+    <string name="points_suffix">نقطة</string>
+
+    <string name="settings_open">الإعدادات</string>
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_system">لغة الموبايل</string>
+    <string name="settings_music">الصوت</string>
+    <string name="settings_gameplay_music">زرار الضحكة</string>
+    <string name="settings_gameplay_music_hint">بيظهر 😂 في الدور، وكل ضغطة بتشغّل ضحكة مرة واحدة</string>
+    <string name="settings_winner_music">مزيكا الفايز</string>
+    <string name="settings_winner_music_hint">بتشتغل بعد ما تأكّد الفايز</string>
+    <string name="settings_volume">علو الصوت</string>
+
+    <string name="setup_title">دور جديد</string>
+    <string name="setup_target_title">الهدف</string>
+    <string name="setup_target_custom">رقم تاني</string>
+    <string name="setup_custom_target_label">هدف مخصوص</string>
+    <string name="setup_players_title">عدد اللاعيبة</string>
+    <plurals name="setup_players_label">
+        <item quantity="zero">لاعيبة</item>
+        <item quantity="one">لاعب</item>
+        <item quantity="two">لاعبين</item>
+        <item quantity="few">لاعيبة</item>
+        <item quantity="many">لاعب</item>
+        <item quantity="other">لاعب</item>
+    </plurals>
+    <string name="setup_names_title">أسامي اللاعيبة</string>
+    <string name="setup_player_placeholder">لاعب %1$d</string>
+    <string name="setup_known_players">لعبوا قبل كده</string>
+    <string name="setup_start">ابدأ الدور</string>
+    <string name="setup_replace_title">تبدأ دور جديد؟</string>
+    <string name="setup_replace_message">الدور الشغّال هيتحفظ في السجل إنه مخلصش.</string>
+    <string name="setup_replace_confirm">ابدأ دور جديد</string>
+
+    <string name="error_target_not_a_number">اكتب رقم صحيح</string>
+    <string name="error_target_too_low">الهدف لازم يبقى %1$d على الأقل</string>
+    <string name="error_target_too_high">الهدف ممكن يبقى %1$d بالكتير</string>
+    <string name="error_name_blank">اكتب اسم</string>
+    <plurals name="error_name_too_long">
+        <item quantity="zero">استخدم %1$d حرف أو أقل</item>
+        <item quantity="one">استخدم حرف واحد أو أقل</item>
+        <item quantity="two">استخدم حرفين أو أقل</item>
+        <item quantity="few">استخدم %1$d حروف أو أقل</item>
+        <item quantity="many">استخدم %1$d حرف أو أقل</item>
+        <item quantity="other">استخدم %1$d حرف أو أقل</item>
+    </plurals>
+    <string name="error_name_duplicate">فيه لاعب تاني بنفس الاسم</string>
+</resources>

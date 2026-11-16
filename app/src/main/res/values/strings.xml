@@ -4,7 +4,7 @@
     <string name="home_tagline">Keep score of every domino game</string>
     <string name="home_active_game_title">Game in progress</string>
     <string name="home_active_game_details">Round %1$d · Target %2$d</string>
-    <string name="rank_number">#%1$d</string>
+    <string name="rank_number" translatable="false">#%1$d</string>
     <string name="qualified">Qualified</string>
     <!-- KING and KOOZ are the app's own ranking titles: the same words and caption in every language. -->
     <string name="rank_king_mark" translatable="false">👑</string>
@@ -71,7 +71,7 @@
         <item quantity="one">%1$d round</item>
         <item quantity="other">%1$d rounds</item>
     </plurals>
-    <string name="history_facts_separator">" · "</string>
+    <string name="history_facts_separator" translatable="false">" · "</string>
     <string name="history_tab_history">History</string>
     <string name="history_tab_statistics">Statistics</string>
     <plurals name="stats_empty_category">
@@ -88,10 +88,10 @@
     <string name="stats_win_rate">Win rate %1$d%%</string>
     <string name="stats_average">Avg %1$s</string>
     <string name="stats_titles">👑 ×%1$d · 🪣 ×%2$d</string>
-    <string name="stats_wins">🏆 %1$d</string>
-    <string name="stats_medal_gold">🥇</string>
-    <string name="stats_medal_silver">🥈</string>
-    <string name="stats_medal_bronze">🥉</string>
+    <string name="stats_wins" translatable="false">🏆 %1$d</string>
+    <string name="stats_medal_gold" translatable="false">🥇</string>
+    <string name="stats_medal_silver" translatable="false">🥈</string>
+    <string name="stats_medal_bronze" translatable="false">🥉</string>
     <string name="duration_under_a_minute">under 1 min</string>
     <string name="duration_minutes">%1$d min</string>
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
@@ -102,7 +102,7 @@
     <string name="detail_round_unfinished">Round %1$d (not finished)</string>
     <string name="game_history">History</string>
     <string name="game_history_empty">Every Add and Penalty shows up here, newest first.</string>
-    <string name="move_total">= %1$d</string>
+    <string name="move_total" translatable="false">= %1$d</string>
     <string name="game_history_see_more">See more</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
