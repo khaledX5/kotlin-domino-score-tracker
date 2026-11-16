@@ -2,12 +2,12 @@ package io.github.khaledx5.dominoscore.ui.startup
 
 /** Where app startup stands, from the launcher tap until the first screen can be shown. */
 enum class StartupUiState {
-    /** The system splash still covers the window. */
-    SystemSplash,
+    /** The loading screen plays its entrance while the database answers its first read. */
+    Loading,
 
-    /** Startup ran past the system splash's short hold, so the animated loading screen took over. */
-    LoadingScreen,
+    /** Both are done: the bar fills and says ready for a short moment. */
+    Finishing,
 
-    /** The database answered its first read, so the screens can be shown. */
+    /** The screens can be shown; the loading screen fades out over them. */
     Ready,
 }

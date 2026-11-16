@@ -49,8 +49,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Shown only when startup runs past the system splash. It carries the same icon, title and tagline
- * as the home screen, in the same styles, so fading into home feels like one screen settling.
+ * Shown on every launch while the app gets ready. It carries the same icon, title and tagline as the
+ * home screen, in the same styles, so fading into home feels like one screen settling. [ready] fills
+ * the bar and says so.
  */
 @Composable
 fun LoadingScreen(ready: Boolean, modifier: Modifier = Modifier) {

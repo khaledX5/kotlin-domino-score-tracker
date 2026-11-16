@@ -236,11 +236,13 @@ The lines come from a JSON file of approved messages and are used word for word.
 
 The result image is drawn on a `Canvas` (1080 × 1350, the 4:5 size chat apps show uncropped) from a `ResultCard` that the screen builds from string resources. The renderer only draws text it is given, so the wording and the language stay in the resources, and an Arabic card is mirrored by the same code. The PNG goes to the app cache and is handed to the share sheet through a `FileProvider`, so the app needs no storage permission, and the receiving app can read that one file only.
 
-### 9. The loading screen only shows up when startup is really slow
+### 9. A short loading screen on every launch, tied to the real work
 
-The system splash (AndroidX `SplashScreen`) stays up until the first database read is done, because that read opens the file and runs any migration, and it is the only thing the first screen waits for. A normal start finishes behind the splash, so there is no second screen.
+Every launch shows the same short loading screen: the home screen's icon, title and tagline, three dominoes drawn on a `Canvas` sliding in, and a teal bar. The system splash (AndroidX `SplashScreen`) leaves with the first frame and the loading screen takes over.
 
-If the read takes longer than 500 ms, an animated loading screen takes over: the home screen's icon, title and tagline, three dominoes drawn on a `Canvas` sliding in, and a teal bar. The bar sweeps instead of counting up, because the app cannot know how far a database open has got and will not invent a percentage. The moment the read finishes, the screen fades into home; nothing waits for the animation to end. It sits above navigation in an activity scoped `ViewModel`, so rotating the phone or coming back to home never plays it again.
+The real work, the first database read that opens the file and runs any migration, starts at once, in parallel with the entrance. The screen stays until both the read and the 1.6 second entrance are done, then fills the bar and says ready for 0.4 seconds before fading into home. On a fast phone that is about two seconds; a slow migration simply keeps it up longer. The bar sweeps instead of counting up, because the app cannot know how far a database open has got and will not invent a percentage. It sits above navigation in an activity scoped `ViewModel`, so rotating the phone or coming back to home never plays it again.
+
+**Trade-off.** A fast phone waits about two seconds it would not need. I chose that on purpose: on a product that opens at a table with friends, a calm, branded start reads better than a blink, and the time is spent while the database opens anyway.
 
 ### 10. Sounds and trash talk listen to the same commands
 
@@ -249,13 +251,13 @@ Trash talk (decision 7) and the game event sounds both need the table right befo
 The sound detector is a pure function over that transition, so every rule is a plain unit test. Each event is a change from "not true before" to "true after": a tie that just stays a tie, or a final stretch that lasts several taps, plays once. One command plays at most one sound, the highest in a fixed priority order. The audio manager still plays one sound at a time: the winner tune is never interrupted, an event replaces the laugh, a tap on the laugh cuts an event, and a second event within 1.5 seconds is dropped so quick taps never stack.
 
 
-430 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
+431 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
 
 | Module | Count | Runs against | What it proves |
 | --- | --- | --- | --- |
 | `:domain` | 211 | Plain JVM, in-memory fakes | Score math and overflow, ranking with ties, KING and KOOZ, qualification after target changes, winner selection, every trash talk event and its priority, every game sound event and its priority, message picking without repeats, statistics and leaderboard order |
 | `:data` | 26 | Room on Robolectric (real SQLite) | Transactions roll back on failure, the score log and moves, profiles by name, frozen standings, both migrations |
-| `:app` | 193 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, sound priority and cooldown, Arabic strings and plural forms |
+| `:app` | 194 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, sound priority and cooldown, Arabic strings and plural forms |
 
 Some things I wanted proven, not assumed:
 

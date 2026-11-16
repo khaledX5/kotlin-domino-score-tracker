@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.khaledx5.dominoscore.ui.startup.StartupUiState
 import io.github.khaledx5.dominoscore.ui.startup.StartupViewModel
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.Motion
@@ -22,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setKeepOnScreenCondition { startupViewModel.uiState.value == StartupUiState.SystemSplash }
+        // The system splash leaves with the first frame; the loading screen under it takes over.
         splashScreen.setOnExitAnimationListener { splash ->
             splash.view.animate()
                 .alpha(0f)

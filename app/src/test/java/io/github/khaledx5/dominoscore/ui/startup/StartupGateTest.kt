@@ -22,7 +22,7 @@ class StartupGateTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private var state by mutableStateOf(StartupUiState.SystemSplash)
+    private var state by mutableStateOf(StartupUiState.Loading)
 
     private fun showGate() {
         composeRule.setContent {
@@ -36,36 +36,23 @@ class StartupGateTest {
     }
 
     @Test
-    fun drawsNothingWhileTheSystemSplashIsUp() {
+    fun theLaunchStartsOnTheLoadingScreen() {
         showGate()
 
-        composeRule.onNodeWithText("Home").assertDoesNotExist()
-        composeRule.onNodeWithText(GETTING_READY).assertDoesNotExist()
-    }
-
-    @Test
-    fun aFastStartGoesStraightToTheFirstScreen() {
-        showGate()
-
-        state = StartupUiState.Ready
-
-        // Checked on the very first frame after the switch, before any fade could run.
-        composeRule.onNodeWithText(GETTING_READY).assertDoesNotExist()
-        composeRule.onNodeWithText(READY).assertDoesNotExist()
-        composeRule.onNodeWithText("Home").assertIsDisplayed()
-    }
-
-    @Test
-    fun aSlowStartShowsTheLoadingScreenThenFadesItOut() {
-        showGate()
-
-        state = StartupUiState.LoadingScreen
         composeRule.onNodeWithText(GETTING_READY).assertIsDisplayed()
+        composeRule.onNodeWithText("Home").assertDoesNotExist()
+    }
+
+    @Test
+    fun itSaysReadyThenFadesIntoTheFirstScreen() {
+        showGate()
+
+        state = StartupUiState.Finishing
+        composeRule.onNodeWithText(READY).assertIsDisplayed()
         composeRule.onNodeWithText("Home").assertDoesNotExist()
 
         state = StartupUiState.Ready
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(GETTING_READY).assertDoesNotExist()
         composeRule.onNodeWithText(READY).assertDoesNotExist()
         composeRule.onNodeWithText("Home").assertIsDisplayed()
     }
