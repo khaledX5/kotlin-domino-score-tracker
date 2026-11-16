@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
@@ -115,25 +116,35 @@ fun MoveRow(move: MoveUi, modifier: Modifier = Modifier, showRound: Boolean = tr
                 )
             }
         }
+        // Numbers always read left to right, so "-5" never turns into "5-" in Arabic.
         Text(
             text = stringResource(
                 if (move.points < 0) R.string.score_delta_penalty else R.string.score_delta_add,
                 abs(move.points),
             ),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge.copy(textDirection = TextDirection.Ltr),
             color = if (move.points < 0) gameColors.penalty else gameColors.add,
             textAlign = TextAlign.End,
-            modifier = Modifier.widthIn(min = POINTS_WIDTH),
+            modifier = Modifier.width(POINTS_WIDTH),
+        )
+        // "=" has its own fixed column, so it stays in the same place whatever the total is.
+        Text(
+            text = stringResource(R.string.move_equals),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(EQUALS_WIDTH),
         )
         Text(
-            text = stringResource(R.string.move_total, move.total),
-            style = MaterialTheme.typography.titleSmall,
+            text = move.total.toString(),
+            style = MaterialTheme.typography.titleSmall.copy(textDirection = TextDirection.Ltr),
             textAlign = TextAlign.End,
-            modifier = Modifier.widthIn(min = TOTAL_WIDTH),
+            modifier = Modifier.width(TOTAL_WIDTH),
         )
     }
 }
 
-/** Fixed columns, so points and totals line up from row to row. */
-private val POINTS_WIDTH = 48.dp
-private val TOTAL_WIDTH = 64.dp
+/** Fixed columns, so points, "=" and totals line up from row to row. */
+private val POINTS_WIDTH = 56.dp
+private val EQUALS_WIDTH = 16.dp
+private val TOTAL_WIDTH = 56.dp

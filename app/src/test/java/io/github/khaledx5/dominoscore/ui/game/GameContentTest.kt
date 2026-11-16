@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -205,7 +206,8 @@ class GameContentTest {
 
         composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("History"))
         composeRule.onNodeWithText("+20").assertExists()
-        composeRule.onNodeWithText("= 60").assertExists()
-        composeRule.onNodeWithText("= -5").assertExists()
+        composeRule.onAllNodesWithText("=").assertCountEquals(2)
+        composeRule.onAllNodesWithText("60")[0].assertExists()
+        composeRule.onAllNodesWithText("-5")[0].assertExists()
     }
 }

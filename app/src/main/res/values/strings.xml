@@ -105,7 +105,7 @@
     <string name="detail_round_unfinished">Round %1$d (not finished)</string>
     <string name="game_history">History</string>
     <string name="game_history_empty">Every Add and Penalty shows up here, newest first.</string>
-    <string name="move_total" translatable="false">= %1$d</string>
+    <string name="move_equals" translatable="false">=</string>
     <string name="game_history_see_more">See more</string>
     <string name="game_add">Add</string>
     <string name="game_penalty">Penalty</string>
