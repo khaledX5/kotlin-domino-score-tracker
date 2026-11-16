@@ -2,7 +2,9 @@ package io.github.khaledx5.dominoscore.ui.summary
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.SavedStateHandle
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
@@ -13,12 +15,19 @@ import io.github.khaledx5.dominoscore.domain.usecase.GetGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.RecordScoreUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
+import io.github.khaledx5.dominoscore.share.CardTitle
+import io.github.khaledx5.dominoscore.share.ResultCard
+import io.github.khaledx5.dominoscore.share.ResultImageExporter
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.testClock
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +51,16 @@ class SummaryViewModelTest {
         GetGameUseCase(games),
         ObservePlayerMessagesUseCase(messages) { MessageLibrary.EMPTY },
         StartGameUseCase(games, testClock),
+        exporter,
     )
+
+    private val exported = mutableListOf<ResultCard>()
+    private var exportFails = false
+    private val exporter = ResultImageExporter { card ->
+        if (exportFails) throw IOException("disk full")
+        exported += card
+        File("result.png")
+    }
 
     private suspend fun finishedGame(): Long {
         StartGameUseCase(games, testClock)(targetScore = 50, playerNames = listOf("Omar", "Mona"))
@@ -95,5 +113,49 @@ class SummaryViewModelTest {
         assertEquals(listOf("Omar", "Mona"), replay.players.map { it.name.value })
         assertEquals(listOf(0, 0), replay.players.map { it.score })
         assertEquals(50, replay.target.value)
+    }
+
+    @Test
+    fun theShareButtonHandsTheCardWithTitlesToTheExporter() = runTest {
+        val viewModel = viewModel(finishedGame())
+        val ready = viewModel.uiState.value as SummaryUiState.Ready
+        composeRule.setContent {
+            DominoTheme {
+                SummaryContent(
+                    summary = ready,
+                    onClose = {},
+                    onPlayAgain = {},
+                    onNewGame = {},
+                    onShare = viewModel::share,
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Share result").performClick()
+
+        val card = exported.single()
+        assertEquals("Omar wins!", card.winnerLine)
+        assertEquals("70 pts", card.scoreLine)
+        assertEquals(listOf("👑", "🪣"), card.rows.map { it.mark })
+        assertEquals(listOf(CardTitle.KING, CardTitle.KOOZ), card.rows.map { it.title })
+        assertEquals(false, card.rtl)
+        assertEquals(File("result.png"), (viewModel.uiState.value as SummaryUiState.Ready).pendingShare)
+    }
+
+    @Test
+    fun aHandledShareClearsTheFileAndAFailedOneSaysSo() = runTest {
+        val viewModel = viewModel(finishedGame())
+        val card = ResultCard("", "", "", "", emptyList(), "", rtl = false)
+
+        viewModel.share(card)
+        viewModel.onShareHandled()
+        assertNull((viewModel.uiState.value as SummaryUiState.Ready).pendingShare)
+
+        exportFails = true
+        viewModel.share(card)
+        val failed = viewModel.uiState.value as SummaryUiState.Ready
+        assertTrue(failed.shareFailed)
+        assertNull(failed.pendingShare)
+        assertEquals(false, failed.isSharing)
     }
 }

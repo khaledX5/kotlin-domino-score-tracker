@@ -10,8 +10,13 @@ import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.usecase.GetGameUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ObservePlayerMessagesUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
+import io.github.khaledx5.dominoscore.share.ResultCard
+import io.github.khaledx5.dominoscore.share.ResultImageExporter
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
+import java.io.File
+import java.io.IOException
+import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +34,7 @@ sealed interface SummaryUiState {
     /**
      * [standings] are the final ranking with KING / KOOZ and each player's last line. [replayNames]
      * and [replayTarget] start the same table again; [replayStarted] tells the screen to open it.
+     * [pendingShare] is a rendered result image waiting for the share sheet.
      */
     @Immutable
     data class Ready(
@@ -37,6 +43,10 @@ sealed interface SummaryUiState {
         val replayNames: List<String> = emptyList(),
         val replayTarget: Int = 0,
         val replayStarted: Boolean = false,
+        val completedAt: Instant? = null,
+        val isSharing: Boolean = false,
+        val pendingShare: File? = null,
+        val shareFailed: Boolean = false,
     ) : SummaryUiState
 }
 
@@ -47,6 +57,7 @@ class SummaryViewModel @Inject constructor(
     private val getGame: GetGameUseCase,
     private val observeMessages: ObservePlayerMessagesUseCase,
     private val startGame: StartGameUseCase,
+    private val exporter: ResultImageExporter,
 ) : ViewModel() {
 
     private val gameId = GameId(checkNotNull(savedStateHandle.get<Long>(GAME_ID_ARG)) { "The route has a game id" })
@@ -68,8 +79,30 @@ class SummaryViewModel @Inject constructor(
             standings = standings,
             replayNames = snapshot.game.players.map { it.name.value },
             replayTarget = snapshot.game.target.value,
+            completedAt = snapshot.game.completedAt,
         )
     }
+
+    /** Renders [card] off the main thread; the screen opens the share sheet once the file is ready. */
+    fun share(card: ResultCard) {
+        val ready = _uiState.value as? SummaryUiState.Ready ?: return
+        if (ready.isSharing) return
+        updateReady { it.copy(isSharing = true, shareFailed = false) }
+        viewModelScope.launch {
+            val file = try {
+                exporter.export(card)
+            } catch (_: IOException) {
+                // A full disk is the realistic cause; the screen says the image could not be made.
+                null
+            }
+            updateReady { it.copy(isSharing = false, pendingShare = file, shareFailed = file == null) }
+        }
+    }
+
+    fun onShareHandled() = updateReady { it.copy(pendingShare = null, shareFailed = false) }
+
+    private fun updateReady(change: (SummaryUiState.Ready) -> SummaryUiState.Ready) =
+        _uiState.update { (it as? SummaryUiState.Ready)?.let(change) ?: it }
 
     /** Same names in the same seats, same target, scores back to zero. */
     fun playAgain() {

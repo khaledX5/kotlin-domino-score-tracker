@@ -1,5 +1,6 @@
 package io.github.khaledx5.dominoscore.ui.summary
 
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -37,15 +38,23 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
+import io.github.khaledx5.dominoscore.share.CardTitle
+import io.github.khaledx5.dominoscore.share.ResultCard
+import io.github.khaledx5.dominoscore.share.ResultCardRow
+import io.github.khaledx5.dominoscore.share.shareImageIntent
 import io.github.khaledx5.dominoscore.ui.components.ConfettiBurst
 import io.github.khaledx5.dominoscore.ui.components.PlayerMessageLine
 import io.github.khaledx5.dominoscore.ui.components.StandingRow
@@ -53,6 +62,9 @@ import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 fun SummaryScreen(
@@ -65,10 +77,21 @@ fun SummaryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnClose by rememberUpdatedState(onClose)
     val currentOnOpenGame by rememberUpdatedState(onOpenGame)
+    val context = LocalContext.current
+    val chooserTitle = stringResource(R.string.share_chooser_title)
+    val failedMessage = stringResource(R.string.share_failed)
     LaunchedEffect(state) {
         val current = state
         if (current == SummaryUiState.Unavailable) currentOnClose()
         if (current is SummaryUiState.Ready && current.replayStarted) currentOnOpenGame()
+        if (current is SummaryUiState.Ready && current.pendingShare != null) {
+            context.startActivity(shareImageIntent(context, current.pendingShare, chooserTitle))
+            viewModel.onShareHandled()
+        }
+        if (current is SummaryUiState.Ready && current.shareFailed) {
+            Toast.makeText(context, failedMessage, Toast.LENGTH_SHORT).show()
+            viewModel.onShareHandled()
+        }
     }
     when (val current = state) {
         SummaryUiState.Loading, SummaryUiState.Unavailable -> Box(
@@ -84,6 +107,7 @@ fun SummaryScreen(
             onPlayAgain = viewModel::playAgain,
             onNewGame = onNewGame,
             modifier = modifier,
+            onShare = viewModel::share,
         )
     }
 }
@@ -100,8 +124,10 @@ fun SummaryContent(
     onPlayAgain: () -> Unit,
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
+    onShare: (ResultCard) -> Unit = {},
 ) {
     val gameColors = DominoThemeExtras.gameColors
+    val card = rememberResultCard(summary)
     Box(modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
@@ -113,6 +139,14 @@ fun SummaryContent(
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.summary_close),
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { onShare(card) }, enabled = !summary.isSharing) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_share),
+                                contentDescription = stringResource(R.string.share_result),
                             )
                         }
                     },
@@ -229,6 +263,52 @@ private fun SummaryActions(onPlayAgain: () -> Unit, onNewGame: () -> Unit, modif
             Text(stringResource(R.string.home_new_game), style = MaterialTheme.typography.titleMedium)
         }
     }
+}
+
+/** The shared image's text, in the app language and layout direction. */
+@Composable
+private fun rememberResultCard(summary: SummaryUiState.Ready): ResultCard {
+    val locale = LocalConfiguration.current.locales[0]
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val date = summary.completedAt?.let { completedAt ->
+        remember(completedAt, locale) {
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                .withLocale(locale)
+                .withZone(ZoneId.systemDefault())
+                .format(completedAt)
+        }
+    }
+    val target = stringResource(R.string.share_target, summary.replayTarget)
+    val rows = summary.standings.map { standing ->
+        ResultCardRow(
+            mark = when {
+                standing.isKing -> stringResource(R.string.rank_king_mark)
+                standing.isKooz -> stringResource(R.string.rank_kooz_mark)
+                else -> stringResource(R.string.rank_number, standing.rank)
+            },
+            name = standing.name,
+            score = standing.score.toString(),
+            title = when {
+                standing.isKing -> CardTitle.KING
+                standing.isKooz -> CardTitle.KOOZ
+                else -> null
+            },
+            titleLabel = when {
+                standing.isKing -> stringResource(R.string.rank_king_badge)
+                standing.isKooz -> stringResource(R.string.rank_kooz_badge)
+                else -> null
+            },
+        )
+    }
+    return ResultCard(
+        brand = stringResource(R.string.app_name).uppercase(locale),
+        trophy = stringResource(R.string.summary_trophy),
+        winnerLine = stringResource(R.string.summary_wins, summary.winner.name),
+        scoreLine = pluralStringResource(R.plurals.points_value, summary.winner.score, summary.winner.score),
+        rows = rows,
+        footer = listOfNotNull(date, target).joinToString(separator = stringResource(R.string.history_facts_separator)),
+        rtl = rtl,
+    )
 }
 
 private const val TROPHY_START_SCALE = 0.3f
