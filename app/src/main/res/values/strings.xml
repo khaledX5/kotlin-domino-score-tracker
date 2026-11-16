@@ -56,7 +56,7 @@
     <string name="share_target">Target %1$d</string>
     <string name="rename_action">Rename</string>
     <string name="game_change_players">Change players</string>
-    <string name="game_change_players_hint">Tap a player\'s name to change it. The new name shows everywhere in this game.</string>
+    <string name="game_change_players_hint">Tap a player\'s name to change it. The new name shows everywhere in this game. He ran away and sent a replacement 😂</string>
     <string name="rename_title">Rename %1$s</string>
     <string name="rename_label">Name</string>
     <string name="rename_confirm">Save</string>

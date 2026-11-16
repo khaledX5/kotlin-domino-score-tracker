@@ -175,6 +175,7 @@ class GameContentTest {
 
         composeRule.onNodeWithText("Change players").performClick()
         composeRule.onNodeWithText("Tap a player's name to change it", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("He ran away and sent a replacement 😂", substring = true).assertIsDisplayed()
         composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Mona"))
         composeRule.onAllNodesWithText("Mona")[0].performClick()
 
