@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Format check, lint, unit tests and debug build
+    name: Format check, lint, unit tests, debug and release builds
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -33,6 +33,10 @@ jobs:
 
       - name: Check, test and build
         run: ./gradlew spotlessCheck lintDebug testDebugUnitTest :domain:test assembleDebug
+
+      # Unsigned on CI (no key there), but it runs R8, so a missing keep rule fails here and not on a phone.
+      - name: Build shrunk release
+        run: ./gradlew assembleRelease
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
