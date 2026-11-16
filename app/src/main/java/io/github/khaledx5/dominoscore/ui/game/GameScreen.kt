@@ -48,6 +48,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -273,8 +277,16 @@ private fun ChangePlayersSwitch(enabled: Boolean, onToggle: () -> Unit, modifier
                 Switch(checked = enabled, onCheckedChange = null)
             }
             AnimatedVisibility(visible = enabled) {
+                val hint = stringResource(R.string.game_change_players_hint)
+                val joke = stringResource(R.string.game_change_players_joke)
+                val jokeColor = MaterialTheme.colorScheme.onSurface
+                // The joke ends the same sentence, a shade darker so it reads as the punchline.
                 Text(
-                    text = stringResource(R.string.game_change_players_hint),
+                    text = buildAnnotatedString {
+                        append(hint)
+                        append(' ')
+                        withStyle(SpanStyle(color = jokeColor, fontWeight = FontWeight.SemiBold)) { append(joke) }
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
