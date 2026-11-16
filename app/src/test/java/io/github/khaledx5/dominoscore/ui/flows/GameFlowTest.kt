@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import io.github.khaledx5.dominoscore.audio.GameSoundEvents
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
 import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
@@ -13,6 +14,7 @@ import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageSelector
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEventDetector
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.testing.FakePlayerMessageRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
@@ -56,6 +58,13 @@ class GameFlowTest {
     private var celebrated: Long? = null
 
     private fun showGame() {
+        val music = MusicController(
+            audio = RecordingAudio().manager,
+            settingsStore = FakeMusicSettingsStore(),
+            observeActiveGame = ObserveActiveGameUseCase(games),
+            scope = TestScope(mainDispatcherRule.dispatcher),
+        )
+        val soundEvents = GameSoundEvents(GameSoundEventDetector(), music)
         val viewModel = GameViewModel(
             ObserveActiveGameUseCase(games),
             ObservePlayerMessagesUseCase(messages) { MessageLibrary.EMPTY },
@@ -71,14 +80,11 @@ class GameFlowTest {
                     RankingMessageEngine(messages, {
                         MessageLibrary.EMPTY
                     }, RankingMessageSelector(Random(1)), testClock),
+                    soundEvents,
                 ),
             ),
-            MusicController(
-                audio = RecordingAudio().manager,
-                settingsStore = FakeMusicSettingsStore(),
-                observeActiveGame = ObserveActiveGameUseCase(games),
-                scope = TestScope(mainDispatcherRule.dispatcher),
-            ),
+            music,
+            soundEvents,
         )
         composeRule.setContent {
             DominoTheme {

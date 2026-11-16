@@ -58,6 +58,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import io.github.khaledx5.dominoscore.ui.components.StandingRow
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
@@ -115,6 +116,7 @@ fun GameScreen(
                 onSeeAllMoves = onSeeAllMoves,
                 changePlayersEnabled = current.changePlayersEnabled,
                 onToggleChangePlayers = viewModel::toggleChangePlayers,
+                reaction = current.reaction,
                 modifier = modifier,
             )
             current.rename?.let { edit ->
@@ -170,6 +172,7 @@ fun GameContent(
     onSeeAllMoves: () -> Unit = {},
     changePlayersEnabled: Boolean = false,
     onToggleChangePlayers: () -> Unit = {},
+    reaction: GameSoundEvent? = null,
 ) {
     KeepScreenOn()
     val haptics = LocalHapticFeedback.current
@@ -212,38 +215,70 @@ fun GameContent(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
-            item(key = "changePlayers") {
-                ChangePlayersSwitch(enabled = changePlayersEnabled, onToggle = onToggleChangePlayers)
+            GameList(
+                game = game,
+                onAdd = onAdd,
+                onPenalty = onPenalty,
+                onRename = onRename,
+                onSeeAllMoves = onSeeAllMoves,
+                changePlayersEnabled = changePlayersEnabled,
+                onToggleChangePlayers = onToggleChangePlayers,
+            )
+            ReactionLabel(
+                reaction = reaction,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = Spacing.s),
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameList(
+    game: GameUi,
+    onAdd: (StandingUi) -> Unit,
+    onPenalty: (StandingUi) -> Unit,
+    onRename: (StandingUi) -> Unit,
+    onSeeAllMoves: () -> Unit,
+    changePlayersEnabled: Boolean,
+    onToggleChangePlayers: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        item(key = "changePlayers") {
+            ChangePlayersSwitch(enabled = changePlayersEnabled, onToggle = onToggleChangePlayers)
+        }
+        item(key = "qualified") {
+            AnimatedVisibility(
+                visible = game.qualifiedNames.isNotEmpty(),
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                QualifiedBanner(names = game.qualifiedNames)
             }
-            item(key = "qualified") {
-                AnimatedVisibility(
-                    visible = game.qualifiedNames.isNotEmpty(),
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    QualifiedBanner(names = game.qualifiedNames)
-                }
+        }
+        items(game.players, key = { it.playerId }) { player ->
+            PlayerCard(player = player, onRename = if (changePlayersEnabled) ({ onRename(player) }) else null) {
+                ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
             }
-            items(game.players, key = { it.playerId }) { player ->
-                PlayerCard(player = player, onRename = if (changePlayersEnabled) ({ onRename(player) }) else null) {
-                    ScoreButtons(onAdd = { onAdd(player) }, onPenalty = { onPenalty(player) })
-                }
-            }
-            item(key = "ranking") {
-                LiveRankingCard(standings = game.standings)
-            }
-            item(key = "history") {
-                RecentMovesCard(moves = game.recentMoves) {
-                    if (game.recentMoves.isNotEmpty()) {
-                        TextButton(onClick = onSeeAllMoves) { Text(stringResource(R.string.game_history_see_more)) }
-                    }
+        }
+        item(key = "ranking") {
+            LiveRankingCard(standings = game.standings)
+        }
+        item(key = "history") {
+            RecentMovesCard(moves = game.recentMoves) {
+                if (game.recentMoves.isNotEmpty()) {
+                    TextButton(onClick = onSeeAllMoves) { Text(stringResource(R.string.game_history_see_more)) }
                 }
             }
         }

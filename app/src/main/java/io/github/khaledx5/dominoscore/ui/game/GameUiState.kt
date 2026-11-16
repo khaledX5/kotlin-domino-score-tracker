@@ -8,6 +8,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.GameSnapshot
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
 import io.github.khaledx5.dominoscore.domain.rules.WinnerSelection
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import io.github.khaledx5.dominoscore.ui.components.StandingUi
 import io.github.khaledx5.dominoscore.ui.components.toStandings
 
@@ -31,6 +32,8 @@ sealed interface GameUiState {
         val rename: RenameUi? = null,
         /** Names can be changed only while the table turned "Change players" on. Off on every visit. */
         val changePlayersEnabled: Boolean = false,
+        /** A moment of the game shown for a short while at the top, like a tie or the final stretch. */
+        val reaction: GameSoundEvent? = null,
     ) : GameUiState
 }
 

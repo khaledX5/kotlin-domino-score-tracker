@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.khaledx5.dominoscore.audio.GameSoundEvents
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.domain.command.GameCommand
 import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
@@ -15,6 +16,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreAmount
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.model.TargetScore
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.ConfirmWinnerUseCase
 import io.github.khaledx5.dominoscore.domain.usecase.EndRoundUseCase
@@ -35,9 +37,11 @@ import io.github.khaledx5.dominoscore.ui.setup.NameFieldError
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -60,6 +64,7 @@ class GameViewModel @Inject constructor(
     private val renamePlayer: RenamePlayerUseCase,
     private val commands: GameCommandRunner,
     private val music: MusicController,
+    soundEvents: GameSoundEvents,
 ) : ViewModel() {
 
     private val scoreEntry = MutableStateFlow<ScoreEntryUi?>(null)
@@ -73,10 +78,23 @@ class GameViewModel @Inject constructor(
     private var endRoundJob: Job? = null
 
     private val changePlayers = MutableStateFlow(false)
+    private val reaction = MutableStateFlow<GameSoundEvent?>(null)
     private val screenState = combine(
         combine(scoreEntry, targetEdit, endedRound, winnerPick, rename, ::ScreenState),
         changePlayers,
-    ) { screen, enabled -> screen.copy(changePlayersEnabled = enabled) }
+        reaction,
+    ) { screen, enabled, shown -> screen.copy(changePlayersEnabled = enabled, reaction = shown) }
+
+    init {
+        // Each event shows for a moment; a newer one replaces it and starts its own moment.
+        viewModelScope.launch {
+            soundEvents.reactions.collectLatest { event ->
+                reaction.value = event
+                delay(REACTION_MS)
+                reaction.value = null
+            }
+        }
+    }
 
     /** The move query follows the game id, like the messages, so a score does not restart it. */
     private val moves = observeActiveGame()
@@ -107,6 +125,7 @@ class GameViewModel @Inject constructor(
                 winnerPick = screen.winnerPick,
                 rename = screen.rename,
                 changePlayersEnabled = screen.changePlayersEnabled,
+                reaction = screen.reaction,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), GameUiState.Loading)
@@ -311,12 +330,15 @@ class GameViewModel @Inject constructor(
         val winnerPick: WinnerPickUi?,
         val rename: RenameUi?,
         val changePlayersEnabled: Boolean = false,
+        val reaction: GameSoundEvent? = null,
     )
 
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
-        val MAX_AMOUNT_DIGITS = ScoreAmount.ALLOWED.last.toString().length
-        val MAX_TARGET_DIGITS = TargetScore.ALLOWED.last.toString().length
+    companion object {
+        /** How long a visual reaction stays at the top of the game. */
+        const val REACTION_MS = 1_500L
+        private const val STOP_TIMEOUT_MS = 5_000L
+        private val MAX_AMOUNT_DIGITS = ScoreAmount.ALLOWED.last.toString().length
+        private val MAX_TARGET_DIGITS = TargetScore.ALLOWED.last.toString().length
     }
 }
 

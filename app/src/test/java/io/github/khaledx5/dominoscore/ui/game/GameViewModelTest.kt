@@ -1,6 +1,7 @@
 package io.github.khaledx5.dominoscore.ui.game
 
 import app.cash.turbine.test
+import io.github.khaledx5.dominoscore.audio.GameSoundEvents
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.audio.MusicTrack
 import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
@@ -14,6 +15,8 @@ import io.github.khaledx5.dominoscore.domain.messages.RankingMessageSelector
 import io.github.khaledx5.dominoscore.domain.model.GameStatus
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.rules.PrimaryAction
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEventDetector
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
 import io.github.khaledx5.dominoscore.domain.testing.FakePlayerMessageRepository
 import io.github.khaledx5.dominoscore.domain.usecase.ChangeTargetUseCase
@@ -31,6 +34,7 @@ import io.github.khaledx5.dominoscore.testing.testClock
 import io.github.khaledx5.dominoscore.ui.setup.NameFieldError
 import kotlin.random.Random
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -52,6 +56,7 @@ class GameViewModelTest {
         observeActiveGame = ObserveActiveGameUseCase(games),
         scope = TestScope(mainDispatcherRule.dispatcher),
     )
+    private val soundEvents = GameSoundEvents(GameSoundEventDetector(), music)
     private val startGame = StartGameUseCase(games, testClock)
     private val recordScore = RecordScoreUseCase(games, testClock)
 
@@ -77,8 +82,9 @@ class GameViewModelTest {
         EndRoundUseCase(games, testClock),
         ConfirmWinnerUseCase(games, testClock),
         RenamePlayerUseCase(games, testClock),
-        GameCommandRunner(games, setOf(trashTalk)),
+        GameCommandRunner(games, setOf(trashTalk, soundEvents)),
         music,
+        soundEvents,
     )
 
     @Test
@@ -122,6 +128,46 @@ class GameViewModelTest {
     }
 
     private fun GameUiState.entry() = (this as GameUiState.Playing).scoreEntry
+
+    private fun GameUiState.reaction() = (this as GameUiState.Playing).reaction
+
+    @Test
+    fun aGameEventShowsAShortReactionAndPlaysItsSound() = runTest {
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        recordScore(omar.id, ScoreOperationType.ADD, 30)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.PENALTY)
+            viewModel.submitQuickAmount(10)
+
+            assertEquals(GameSoundEvent.LARGE_PENALTY, expectMostRecentItem().reaction())
+            assertEquals(MusicTrack.EVENT_LARGE_PENALTY, recordingAudio.started.last())
+
+            this@runTest.advanceTimeBy(GameViewModel.REACTION_MS + 1)
+            assertEquals(null, expectMostRecentItem().reaction())
+        }
+    }
+
+    @Test
+    fun withVisualReactionsOffTheSoundStillPlays() = runTest {
+        settings.setVisualReactionsEnabled(false)
+        startGame(targetScore = 100, playerNames = listOf("Omar", "Mona"))
+        val omar = games.activeGame().players.first()
+        recordScore(omar.id, ScoreOperationType.ADD, 30)
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            expectMostRecentItem()
+            viewModel.openScoreEntry(omar.id.value, omar.name.value, ScoreOperationType.PENALTY)
+            viewModel.submitQuickAmount(10)
+
+            assertEquals(null, expectMostRecentItem().reaction())
+            assertEquals(MusicTrack.EVENT_LARGE_PENALTY, recordingAudio.started.last())
+        }
+    }
 
     private fun GameUiState.scores() = (this as GameUiState.Playing).game.players.map { it.score }
 

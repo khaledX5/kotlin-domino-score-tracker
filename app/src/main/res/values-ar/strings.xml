@@ -129,6 +129,11 @@
     <string name="game_history">الحركات</string>
     <string name="game_history_empty">كل إضافة وكل خصم هيظهروا هنا، الأحدث فوق.</string>
     <string name="game_history_see_more">شوف الكل</string>
+    <string name="reaction_second_qualified">اتنين وصلوا للنقاط المستهدفة! 🔥</string>
+    <string name="reaction_final_stretch">آخر 10 نقط! 😬</string>
+    <string name="reaction_last_player_scores">أخيرًا جاب نقط! 😅</string>
+    <string name="reaction_equal_scores">تعادل! 🤝</string>
+    <string name="reaction_large_penalty">خصم تقيل! 😱</string>
     <string name="game_add">زوّد</string>
     <string name="game_penalty">اخصم</string>
     <string name="score_sheet_add_title">زوّد نقط لـ %1$s</string>
