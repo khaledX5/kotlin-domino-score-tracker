@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Motion
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 import io.github.khaledx5.dominoscore.ui.theme.rememberReducedMotion
 import kotlin.math.abs
 import kotlinx.coroutines.delay
@@ -66,7 +67,7 @@ fun AnimatedScore(score: Int, modifier: Modifier = Modifier, style: TextStyle = 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = shown.toString(),
-            style = style,
+            style = style.forNumbers(),
             modifier = Modifier.graphicsLayer {
                 scaleX = scale.value
                 scaleY = scale.value
@@ -91,7 +92,7 @@ private fun FloatingDelta(delta: Int, modifier: Modifier = Modifier) {
     val gained = delta >= 0
     Text(
         text = stringResource(if (gained) R.string.score_delta_add else R.string.score_delta_penalty, abs(delta)),
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleMedium.forNumbers(),
         color = if (gained) gameColors.add else gameColors.penalty,
         modifier = modifier,
     )

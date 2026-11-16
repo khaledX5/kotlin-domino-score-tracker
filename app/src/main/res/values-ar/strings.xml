@@ -113,7 +113,7 @@
         <item quantity="other">%1$d دور</item>
     </plurals>
     <string name="stats_win_rate">نسبة الفوز %1$d%%</string>
-    <string name="stats_average">المتوسط %1$s</string>
+    <string name="stats_average">المتوسط ⁦%1$s⁩</string>
     <!-- No multiplication sign: in a right-to-left line it lands after the number and reads oddly. -->
     <string name="stats_titles">👑 %1$d · 🪣 %2$d</string>
     <string name="duration_under_a_minute">أقل من دقيقة</string>

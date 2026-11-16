@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
@@ -28,6 +27,7 @@ import io.github.khaledx5.dominoscore.domain.history.ScoreMove
 import io.github.khaledx5.dominoscore.domain.model.Player
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 import kotlin.math.abs
 
 /** One Add or Penalty in the move history. The name is today's name, so a rename shows everywhere. */
@@ -122,7 +122,7 @@ fun MoveRow(move: MoveUi, modifier: Modifier = Modifier, showRound: Boolean = tr
                 if (move.points < 0) R.string.score_delta_penalty else R.string.score_delta_add,
                 abs(move.points),
             ),
-            style = MaterialTheme.typography.labelLarge.copy(textDirection = TextDirection.Ltr),
+            style = MaterialTheme.typography.labelLarge.forNumbers(),
             color = if (move.points < 0) gameColors.penalty else gameColors.add,
             textAlign = TextAlign.End,
             modifier = Modifier.width(POINTS_WIDTH),
@@ -137,7 +137,7 @@ fun MoveRow(move: MoveUi, modifier: Modifier = Modifier, showRound: Boolean = tr
         )
         Text(
             text = move.total.toString(),
-            style = MaterialTheme.typography.titleSmall.copy(textDirection = TextDirection.Ltr),
+            style = MaterialTheme.typography.titleSmall.forNumbers(),
             textAlign = TextAlign.End,
             modifier = Modifier.width(TOTAL_WIDTH),
         )

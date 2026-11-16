@@ -31,6 +31,7 @@ import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.ui.components.ChoiceTile
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 
 /** Add or Penalty for one player: a quick amount saves in one tap, or any amount can be typed. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -78,7 +79,7 @@ fun ScoreEntrySheet(
                                 if (isPenalty) R.string.score_delta_penalty else R.string.score_delta_add,
                                 amount,
                             ),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.forNumbers(),
                             color = accent,
                         )
                     }

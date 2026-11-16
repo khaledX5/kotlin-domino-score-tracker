@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import io.github.khaledx5.dominoscore.R
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 
 /**
  * One line of the standings. The KING row gets a gold highlight that fades in and out as the
@@ -94,7 +95,7 @@ fun StandingRow(standing: StandingUi, modifier: Modifier = Modifier) {
             }
             Text(
                 text = standing.score.toString(),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineSmall.forNumbers(),
             )
         }
     }

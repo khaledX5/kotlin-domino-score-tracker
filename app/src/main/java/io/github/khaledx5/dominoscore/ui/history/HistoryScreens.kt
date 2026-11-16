@@ -52,6 +52,7 @@ import io.github.khaledx5.dominoscore.ui.components.StandingRow
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Motion
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -225,7 +226,7 @@ private fun CompletedGameCard(game: CompletedGameUi, onClick: () -> Unit, modifi
                 )
                 Text(
                     text = game.winnerScore.toString(),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall.forNumbers(),
                     color = DominoThemeExtras.gameColors.king,
                 )
             }
@@ -350,14 +351,14 @@ private fun RoundCard(round: RoundRowUi, modifier: Modifier = Modifier) {
                         if (cell.points < 0) R.string.score_delta_penalty else R.string.score_delta_add,
                         kotlin.math.abs(cell.points),
                     ),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge.forNumbers(),
                     color = when {
                         cell.points > 0 -> gameColors.add
                         cell.points < 0 -> gameColors.penalty
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
-                Text(text = cell.total.toString(), style = MaterialTheme.typography.titleMedium)
+                Text(text = cell.total.toString(), style = MaterialTheme.typography.titleMedium.forNumbers())
             }
         }
     }

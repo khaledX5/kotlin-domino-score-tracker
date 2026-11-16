@@ -55,6 +55,7 @@ import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
 import io.github.khaledx5.dominoscore.ui.theme.DominoThemeExtras
 import io.github.khaledx5.dominoscore.ui.theme.Motion
 import io.github.khaledx5.dominoscore.ui.theme.Spacing
+import io.github.khaledx5.dominoscore.ui.theme.forNumbers
 import io.github.khaledx5.dominoscore.ui.theme.rememberReducedMotion
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
@@ -205,7 +206,10 @@ private fun ResultCard(standing: StandingUi, delayMs: Int, animate: Boolean, mod
                         PlayerMessageLine(standing.message)
                     }
                 }
-                Text(text = score.value.roundToInt().toString(), style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = score.value.roundToInt().toString(),
+                    style = MaterialTheme.typography.headlineSmall.forNumbers(),
+                )
             }
         }
     }
