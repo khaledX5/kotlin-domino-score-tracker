@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -86,13 +87,22 @@ sealed interface HistoryContentState {
     data object Loading : HistoryContentState
 
     @Immutable
-    data class Ready(val games: List<CompletedGameUi>) : HistoryContentState
+    data class Ready(val games: List<CompletedGameUi>, val statistics: StatisticsUi) : HistoryContentState
 }
 
-/** The selected table size and what was played at it. Every size is its own category. */
+enum class HistoryTab {
+    HISTORY,
+    STATISTICS,
+}
+
+/**
+ * The selected table size, the selected tab and what was played at that size. Every size is its
+ * own category; the tab stays when the size changes.
+ */
 @Immutable
 data class HistoryUiState(
     val playerCount: Int = DEFAULT_PLAYER_COUNT,
+    val tab: HistoryTab = HistoryTab.HISTORY,
     val content: HistoryContentState = HistoryContentState.Loading,
 ) {
     companion object {
@@ -109,14 +119,19 @@ class HistoryViewModel @Inject constructor(
 
     private val playerCount = savedStateHandle.getStateFlow(PLAYER_COUNT_KEY, HistoryUiState.DEFAULT_PLAYER_COUNT)
 
+    private val tab = savedStateHandle.getStateFlow(TAB_KEY, HistoryTab.HISTORY)
+
     val uiState: StateFlow<HistoryUiState> = playerCount
         .flatMapLatest { count ->
             observeHistory(count)
                 .map<PlayerCountHistory, HistoryContentState> { history ->
-                    HistoryContentState.Ready(history.games.map { it.toUi() })
+                    HistoryContentState.Ready(history.games.map { it.toUi() }, history.toStatisticsUi())
                 }
                 .onStart { emit(HistoryContentState.Loading) }
-                .map { content -> HistoryUiState(playerCount = count, content = content) }
+                .map { content -> count to content }
+        }
+        .combine(tab) { (count, content), selectedTab ->
+            HistoryUiState(playerCount = count, tab = selectedTab, content = content)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HistoryUiState())
 
@@ -125,9 +140,14 @@ class HistoryViewModel @Inject constructor(
         savedStateHandle[PLAYER_COUNT_KEY] = count
     }
 
+    fun selectTab(tab: HistoryTab) {
+        savedStateHandle[TAB_KEY] = tab
+    }
+
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
         const val PLAYER_COUNT_KEY = "playerCount"
+        const val TAB_KEY = "tab"
     }
 }
 

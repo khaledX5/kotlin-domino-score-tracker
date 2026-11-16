@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.domain.history.GetGameDetailUseCase
+import io.github.khaledx5.dominoscore.domain.history.Medal
 import io.github.khaledx5.dominoscore.domain.history.ObservePlayerCountHistoryUseCase
 import io.github.khaledx5.dominoscore.domain.model.ScoreOperationType
 import io.github.khaledx5.dominoscore.domain.testing.FakeGameRepository
@@ -20,6 +21,7 @@ import io.github.khaledx5.dominoscore.domain.usecase.StartGameUseCase
 import io.github.khaledx5.dominoscore.testing.MainDispatcherRule
 import io.github.khaledx5.dominoscore.testing.testClock
 import io.github.khaledx5.dominoscore.ui.theme.DominoTheme
+import java.math.BigDecimal
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -124,7 +126,10 @@ class HistoryTest {
         composeRule.setContent {
             DominoTheme {
                 HistoryContent(
-                    state = HistoryUiState(playerCount = 3, content = HistoryContentState.Ready(emptyList())),
+                    state = HistoryUiState(
+                        playerCount = 3,
+                        content = HistoryContentState.Ready(emptyList(), StatisticsUi(0, 0, emptyList())),
+                    ),
                     onBack = {},
                     onSelectPlayerCount = {},
                     onOpenGame = {},
@@ -133,6 +138,118 @@ class HistoryTest {
         }
 
         composeRule.onNodeWithText("No finished games with 3 players yet.").assertIsDisplayed()
+    }
+
+    /** Plays a finished 2-player game where [winner] (a seat) reaches 50 and confirms the win. */
+    private suspend fun finishTwoPlayerGame(names: List<String>, winner: Int, loserScore: Int) {
+        StartGameUseCase(games, testClock)(50, names, replaceActiveGame = true)
+        val players = games.activeGame().players
+        RecordScoreUseCase(games, testClock)(players[winner].id, ScoreOperationType.ADD, 60)
+        if (loserScore >
+            0
+        ) {
+            RecordScoreUseCase(games, testClock)(players[1 - winner].id, ScoreOperationType.ADD, loserScore)
+        }
+        ConfirmWinnerUseCase(games, testClock)(players[winner].id)
+    }
+
+    @Test
+    fun theStatisticsTabStaysWhenThePlayerCountChanges() = runTest {
+        val viewModel = historyViewModel()
+
+        viewModel.uiState.test {
+            viewModel.selectTab(HistoryTab.STATISTICS)
+            viewModel.selectPlayerCount(4)
+            val state = expectMostRecentItem()
+            assertEquals(4, state.playerCount)
+            assertEquals(HistoryTab.STATISTICS, state.tab)
+
+            viewModel.selectPlayerCount(2)
+            assertEquals(HistoryTab.STATISTICS, expectMostRecentItem().tab)
+        }
+    }
+
+    @Test
+    fun statisticsCountOfficialWinsPerPersonForThatTableSizeOnly() = runTest {
+        finishTwoPlayerGame(listOf("Omar", "Mona"), winner = 0, loserScore = 20)
+        finishTwoPlayerGame(listOf("mona", "Omar"), winner = 0, loserScore = 0)
+        finishTwoPlayerGame(listOf("Omar", "Ali"), winner = 0, loserScore = 30)
+        StartGameUseCase(games, testClock)(50, listOf("Omar", "Mona", "Ali"), replaceActiveGame = true)
+        RecordScoreUseCase(games, testClock)(games.activeGame().players[2].id, ScoreOperationType.ADD, 60)
+        ConfirmWinnerUseCase(games, testClock)(games.activeGame().players[2].id)
+
+        historyViewModel().uiState.test {
+            val statistics = (expectMostRecentItem().content as HistoryContentState.Ready).statistics
+            assertEquals(3, statistics.totalGames)
+            assertEquals(3, statistics.totalPlayers)
+            assertEquals(listOf("Omar", "Mona", "Ali"), statistics.leaderboard.map { it.name })
+            val omar = statistics.leaderboard.first()
+            assertEquals(listOf(2, 3, 67), listOf(omar.wins, omar.games, omar.winRatePercent))
+            assertEquals(BigDecimal("40.0"), omar.averageScore)
+            assertEquals(listOf(Medal.GOLD, Medal.SILVER, Medal.BRONZE), statistics.leaderboard.map { it.medal })
+        }
+    }
+
+    @Test
+    fun theStatisticsTabShowsTotalsAndTheMedalLeaderboard() {
+        val statistics = StatisticsUi(
+            totalGames = 5,
+            totalPlayers = 4,
+            leaderboard = listOf(
+                LeaderboardRowUi(1, 1, Medal.GOLD, "Omar", 3, 5, 60, BigDecimal("103.7"), 3, 1),
+                LeaderboardRowUi(2, 2, Medal.SILVER, "Mona", 2, 5, 40, BigDecimal("88.0"), 2, 2),
+                LeaderboardRowUi(3, 3, Medal.BRONZE, "Ali", 0, 3, 0, BigDecimal("12.5"), 0, 2),
+                LeaderboardRowUi(4, 4, null, "Sara", 0, 2, 0, BigDecimal("-4.0"), 0, 0),
+            ),
+        )
+        var tab: HistoryTab? = null
+        composeRule.setContent {
+            DominoTheme {
+                HistoryContent(
+                    state = HistoryUiState(
+                        playerCount = 2,
+                        tab = HistoryTab.STATISTICS,
+                        content = HistoryContentState.Ready(emptyList(), statistics),
+                    ),
+                    onBack = {},
+                    onSelectPlayerCount = {},
+                    onOpenGame = {},
+                    onSelectTab = { tab = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Total games").assertIsDisplayed()
+        composeRule.onNodeWithText("Total players").assertIsDisplayed()
+        composeRule.onNodeWithText("🥇").assertIsDisplayed()
+        composeRule.onNodeWithText("🏆 3").assertIsDisplayed()
+        composeRule.onNodeWithText("5 games · Win rate 60% · Avg 103.7").assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Sara"))
+        composeRule.onNodeWithText("#4").assertIsDisplayed()
+        composeRule.onNodeWithText("History").performClick()
+        assertEquals(HistoryTab.HISTORY, tab)
+    }
+
+    @Test
+    fun anEmptyCategoryHasNoStatisticsYet() {
+        composeRule.setContent {
+            DominoTheme {
+                HistoryContent(
+                    state = HistoryUiState(
+                        playerCount = 4,
+                        tab = HistoryTab.STATISTICS,
+                        content = HistoryContentState.Ready(emptyList(), StatisticsUi(0, 0, emptyList())),
+                    ),
+                    onBack = {},
+                    onSelectPlayerCount = {},
+                    onOpenGame = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(
+            "Statistics show up after the first finished game with 4 players.",
+        ).assertIsDisplayed()
     }
 
     @Test

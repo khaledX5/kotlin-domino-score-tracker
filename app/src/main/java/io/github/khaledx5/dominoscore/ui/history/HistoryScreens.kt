@@ -22,10 +22,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -67,14 +69,16 @@ fun HistoryScreen(
         state = state,
         onBack = onBack,
         onSelectPlayerCount = viewModel::selectPlayerCount,
+        onSelectTab = viewModel::selectTab,
         onOpenGame = onOpenGame,
         modifier = modifier,
     )
 }
 
 /**
- * Completed games split by table size: 2, 3 and 4 players never mix. Each card shows the
- * confirmed winner, the frozen final ranking with KING and KOOZ, and when and how long it was.
+ * Completed games split by table size: 2, 3 and 4 players never mix. History shows each game with
+ * the confirmed winner and its frozen final ranking; Statistics shows the totals and leaderboard
+ * of that size only.
  */
 @Composable
 fun HistoryContent(
@@ -83,6 +87,7 @@ fun HistoryContent(
     onSelectPlayerCount: (Int) -> Unit,
     onOpenGame: (gameId: Long) -> Unit,
     modifier: Modifier = Modifier,
+    onSelectTab: (HistoryTab) -> Unit = {},
 ) {
     ScreenScaffold(title = stringResource(R.string.history_title), onBack = onBack, modifier = modifier) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -91,9 +96,10 @@ fun HistoryContent(
                 onSelect = onSelectPlayerCount,
                 modifier = Modifier.padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.s),
             )
+            HistoryTabs(selected = state.tab, onSelect = onSelectTab)
             AnimatedContent(
                 targetState = state,
-                contentKey = { it.playerCount to (it.content is HistoryContentState.Ready) },
+                contentKey = { Triple(it.playerCount, it.tab, it.content is HistoryContentState.Ready) },
                 transitionSpec = { fadeIn(tween(Motion.QUICK_MS)) togetherWith fadeOut(tween(Motion.QUICK_MS)) },
                 label = "historyCategory",
                 modifier = Modifier.weight(1f),
@@ -102,11 +108,18 @@ fun HistoryContent(
                     // Reading one category takes a moment; a blank frame is calmer than a spinner flash.
                     HistoryContentState.Loading -> Box(Modifier.fillMaxSize())
 
-                    is HistoryContentState.Ready -> GameList(
-                        games = content.games,
-                        playerCount = shown.playerCount,
-                        onOpenGame = onOpenGame,
-                    )
+                    is HistoryContentState.Ready -> when (shown.tab) {
+                        HistoryTab.HISTORY -> GameList(
+                            games = content.games,
+                            playerCount = shown.playerCount,
+                            onOpenGame = onOpenGame,
+                        )
+
+                        HistoryTab.STATISTICS -> StatisticsList(
+                            statistics = content.statistics,
+                            playerCount = shown.playerCount,
+                        )
+                    }
                 }
             }
         }
@@ -135,6 +148,33 @@ private fun PlayerCountSelector(selected: Int, onSelect: (Int) -> Unit, modifier
 }
 
 @Composable
+private fun HistoryTabs(selected: HistoryTab, onSelect: (HistoryTab) -> Unit) {
+    PrimaryTabRow(
+        selectedTabIndex = selected.ordinal,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+    ) {
+        HistoryTab.entries.forEach { tab ->
+            Tab(
+                selected = tab == selected,
+                onClick = { onSelect(tab) },
+                text = {
+                    Text(
+                        text = stringResource(
+                            when (tab) {
+                                HistoryTab.HISTORY -> R.string.history_tab_history
+                                HistoryTab.STATISTICS -> R.string.history_tab_statistics
+                            },
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                },
+            )
+        }
+    }
+}
+
+@Composable
 private fun GameList(games: List<CompletedGameUi>, playerCount: Int, onOpenGame: (gameId: Long) -> Unit) {
     if (games.isEmpty()) {
         EmptyCategory(text = pluralStringResource(R.plurals.history_empty_category, playerCount, playerCount))
@@ -152,8 +192,8 @@ private fun GameList(games: List<CompletedGameUi>, playerCount: Int, onOpenGame:
 }
 
 @Composable
-private fun EmptyCategory(text: String) {
-    Box(Modifier.fillMaxSize().padding(Spacing.xl), contentAlignment = Alignment.Center) {
+internal fun EmptyCategory(text: String, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize().padding(Spacing.xl), contentAlignment = Alignment.Center) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
