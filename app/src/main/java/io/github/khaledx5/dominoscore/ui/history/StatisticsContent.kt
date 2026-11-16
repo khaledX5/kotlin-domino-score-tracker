@@ -171,17 +171,16 @@ private fun LeaderboardRow(row: LeaderboardRowUi, modifier: Modifier = Modifier)
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                val separator = stringResource(R.string.history_facts_separator)
                 Text(
-                    text = listOf(
-                        pluralStringResource(R.plurals.stats_games, row.games, row.games),
+                    text = pluralStringResource(R.plurals.stats_games, row.games, row.games) + separator +
                         stringResource(R.string.stats_win_rate, row.winRatePercent),
-                        stringResource(R.string.stats_average, rememberOneDecimal(row.averageScore)),
-                    ).joinToString(separator = stringResource(R.string.history_facts_separator)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = stringResource(R.string.stats_titles, row.kingFinishes, row.koozFinishes),
+                    text = stringResource(R.string.stats_average, rememberOneDecimal(row.averageScore)) + separator +
+                        stringResource(R.string.stats_titles, row.kingFinishes, row.koozFinishes),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

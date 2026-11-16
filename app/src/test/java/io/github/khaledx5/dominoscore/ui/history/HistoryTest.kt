@@ -112,7 +112,7 @@ class HistoryTest {
             }
         }
 
-        composeRule.onNodeWithText("2 rounds", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("2 rounds · under 1 min", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("👑 KING", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("🪣 KOOZ", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("🏆 Omar won").assertIsDisplayed().performClick()
@@ -223,7 +223,8 @@ class HistoryTest {
         composeRule.onNodeWithText("Total players").assertIsDisplayed()
         composeRule.onNodeWithText("🥇").assertIsDisplayed()
         composeRule.onNodeWithText("🏆 3").assertIsDisplayed()
-        composeRule.onNodeWithText("5 games · Win rate 60% · Avg 103.7").assertIsDisplayed()
+        composeRule.onNodeWithText("5 games · Win rate 60%").assertIsDisplayed()
+        composeRule.onNodeWithText("Avg 103.7 · 👑 ×3 · 🪣 ×1").assertIsDisplayed()
         composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Sara"))
         composeRule.onNodeWithText("#4").assertIsDisplayed()
         composeRule.onNodeWithText("History").performClick()

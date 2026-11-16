@@ -83,11 +83,12 @@
     </plurals>
     <string name="stats_win_rate">Win rate %1$d%%</string>
     <string name="stats_average">Avg %1$s</string>
-    <string name="stats_titles">👑 KING ×%1$d · 🪣 KOOZ ×%2$d</string>
+    <string name="stats_titles">👑 ×%1$d · 🪣 ×%2$d</string>
     <string name="stats_wins">🏆 %1$d</string>
     <string name="stats_medal_gold">🥇</string>
     <string name="stats_medal_silver">🥈</string>
     <string name="stats_medal_bronze">🥉</string>
+    <string name="duration_under_a_minute">under 1 min</string>
     <string name="duration_minutes">%1$d min</string>
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <string name="history_winner">🏆 %1$s won</string>

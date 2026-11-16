@@ -251,10 +251,10 @@ private fun gameFacts(game: CompletedGameUi): String = listOf(
 private fun durationText(minutes: Long): String {
     val hours = (minutes / MINUTES_PER_HOUR).toInt()
     val rest = (minutes % MINUTES_PER_HOUR).toInt()
-    return if (hours == 0) {
-        stringResource(R.string.duration_minutes, rest)
-    } else {
-        stringResource(R.string.duration_hours_minutes, hours, rest)
+    return when {
+        minutes < 1 -> stringResource(R.string.duration_under_a_minute)
+        hours == 0 -> stringResource(R.string.duration_minutes, rest)
+        else -> stringResource(R.string.duration_hours_minutes, hours, rest)
     }
 }
 
