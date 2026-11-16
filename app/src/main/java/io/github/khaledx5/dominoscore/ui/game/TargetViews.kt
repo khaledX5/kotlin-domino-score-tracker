@@ -38,6 +38,12 @@ fun TargetEditDialog(
         title = { Text(stringResource(R.string.target_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                // Raising the target means more rounds, and the table knows what that means.
+                Text(
+                    text = stringResource(R.string.target_dialog_joke),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 Text(
                     text = stringResource(R.string.target_dialog_body),
                     style = MaterialTheme.typography.bodyMedium,

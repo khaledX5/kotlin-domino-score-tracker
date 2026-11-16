@@ -27,6 +27,7 @@
     </plurals>
     <string name="game_qualified_body">Confirm the winner, or raise the target to keep playing.</string>
     <string name="target_dialog_title">Change target</string>
+    <string name="target_dialog_joke">It\'s gonna be a long night! 😂</string>
     <string name="target_dialog_body">Everyone is checked against the new target right away.</string>
     <string name="target_dialog_label">New target</string>
     <string name="target_dialog_confirm">Change</string>
