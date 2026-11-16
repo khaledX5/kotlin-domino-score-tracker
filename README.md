@@ -52,6 +52,7 @@ So this is a small product for a real table, and also the place where I hold And
 | A phone that dies mid-game | Every tap is written to the database in one transaction. A killed app or a restart opens the exact same game. |
 | Some fun | 111 approved Egyptian Arabic lines in 22 categories react to what really happened: a comeback, losing the crown by one point, falling from first to last. Never the same line twice in a row for a player. |
 | "Who wins most at four players?" | History and statistics are split by table size (2, 3 or 4 players) and never mixed. The leaderboard counts official wins only and gives medals to the top three. |
+| To hear the big moments | A short sound, once, when a second player qualifies, the top two enter the last 10 points, the last player finally scores, players tie above 25, or a penalty is above 4. Each one has its own switch, plus a master switch and an optional line on screen. |
 | To send the result to the group | A share image with the winner, the final ranking, KING and KOOZ, in the app language. |
 | Arabic | The whole app in English and Arabic, right-to-left included, with Inter and Cairo fonts bundled. |
 
@@ -235,15 +236,20 @@ The system splash (AndroidX `SplashScreen`) stays up until the first database re
 
 If the read takes longer than 500 ms, an animated loading screen takes over: the home screen's icon, title and tagline, three dominoes drawn on a `Canvas` sliding in, and a teal bar. The bar sweeps instead of counting up, because the app cannot know how far a database open has got and will not invent a percentage. The moment the read finishes, the screen fades into home; nothing waits for the animation to end. It sits above navigation in an activity scoped `ViewModel`, so rotating the phone or coming back to home never plays it again.
 
-## Testing
+### 10. Sounds and trash talk listen to the same commands
 
-376 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
+Trash talk (decision 7) and the game event sounds both need the table right before and right after a command. Instead of each wrapping the commands and reading the database twice, a `GameCommandRunner` wraps every score, target change and round end once and hands one `GameTransition` (the command, the table before, the table after) to each listener. Trash talk is one listener; the sounds are another.
+
+The sound detector is a pure function over that transition, so every rule is a plain unit test. Each event is a change from "not true before" to "true after": a tie that just stays a tie, or a final stretch that lasts several taps, plays once. One command plays at most one sound, the highest in a fixed priority order. The audio manager still plays one sound at a time: the winner tune is never interrupted, an event replaces the laugh, a tap on the laugh cuts an event, and a second event within 1.5 seconds is dropped so quick taps never stack.
+
+
+433 tests, all run on every push. Android code runs on the JVM with Robolectric, so no emulator is needed in CI.
 
 | Module | Count | Runs against | What it proves |
 | --- | --- | --- | --- |
-| `:domain` | 180 | Plain JVM, in-memory fakes | Score math and overflow, ranking with ties, KING and KOOZ, qualification after target changes, winner selection, every trash talk event and its priority, message picking without repeats, statistics and leaderboard order |
+| `:domain` | 211 | Plain JVM, in-memory fakes | Score math and overflow, ranking with ties, KING and KOOZ, qualification after target changes, winner selection, every trash talk event and its priority, every game sound event and its priority, message picking without repeats, statistics and leaderboard order |
 | `:data` | 26 | Room on Robolectric (real SQLite) | Transactions roll back on failure, the score log and moves, profiles by name, frozen standings, both migrations |
-| `:app` | 170 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, Arabic strings and plural forms |
+| `:app` | 196 | ViewModels and Compose UI on Robolectric | Every screen's state, full setup and game flows driven through the UI, the share image file, sound priority and cooldown, Arabic strings and plural forms |
 
 Some things I wanted proven, not assumed:
 
@@ -263,6 +269,8 @@ The domain tests use `FakeGameRepository`, an in-memory implementation of the sa
 │       ├── model/             Game, Player, Profile, TargetScore, ScoreAmount, PlayerName, Outcome
 │       ├── rules/             Ranking, KING / KOOZ, qualification, primary action, winner selection
 │       ├── usecase/           Start game, record score, end round, confirm winner, rename, ...
+│       ├── command/           GameCommandRunner: one before / after snapshot per command for every listener
+│       ├── sound/             Game sound events: detector, priority, thresholds
 │       ├── messages/          Trash talk: categories, event detection, picker, engine
 │       ├── history/           Round breakdown, completed games, statistics and leaderboard
 │       └── repository/        GameRepository, PlayerMessageRepository
