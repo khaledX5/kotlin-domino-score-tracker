@@ -1,6 +1,7 @@
 package io.github.khaledx5.dominoscore.audio
 
 import io.github.khaledx5.dominoscore.di.ApplicationScope
+import io.github.khaledx5.dominoscore.domain.sound.GameSoundEvent
 import io.github.khaledx5.dominoscore.domain.usecase.ObserveActiveGameUseCase
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,6 +60,9 @@ class MusicController @Inject constructor(
     fun onAppBackground() = audio.stopAllMusic()
 
     fun stopGameplayMusic() = audio.stopGameplayMusic()
+
+    /** A moment of the game happened: its clip plays once, unless the winner tune is playing. */
+    fun playGameEvent(event: GameSoundEvent) = audio.playEventSound(event.track)
 
     /** Called only after the table confirmed the winner. */
     fun celebrateWinner() {
