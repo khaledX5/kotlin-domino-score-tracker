@@ -6,7 +6,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
+import io.github.khaledx5.dominoscore.domain.command.GameTransitionListener
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrarySource
+import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.messages.AssetMessageLibrarySource
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -20,6 +23,11 @@ object MessagesModule {
     @Singleton
     fun provideMessageLibrarySource(@ApplicationContext context: Context): MessageLibrarySource =
         AssetMessageLibrarySource(context)
+
+    /** Trash talk reacts to every game command through the command runner. */
+    @Provides
+    @IntoSet
+    fun provideTrashTalkListener(engine: RankingMessageEngine): GameTransitionListener = engine
 
     /** Picks lines at random; tests pass a seeded Random instead. */
     @Provides

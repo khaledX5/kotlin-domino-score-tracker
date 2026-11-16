@@ -3,6 +3,7 @@ package io.github.khaledx5.dominoscore.ui.game
 import app.cash.turbine.test
 import io.github.khaledx5.dominoscore.audio.MusicController
 import io.github.khaledx5.dominoscore.audio.MusicTrack
+import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
 import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
 import io.github.khaledx5.dominoscore.domain.messages.MessageCategory
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
@@ -61,7 +62,6 @@ class GameViewModelTest {
         },
     )
     private val trashTalk = RankingMessageEngine(
-        games,
         messages,
         { library },
         RankingMessageSelector(Random(1)),
@@ -77,7 +77,7 @@ class GameViewModelTest {
         EndRoundUseCase(games, testClock),
         ConfirmWinnerUseCase(games, testClock),
         RenamePlayerUseCase(games, testClock),
-        trashTalk,
+        GameCommandRunner(games, setOf(trashTalk)),
         music,
     )
 

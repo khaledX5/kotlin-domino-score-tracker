@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.khaledx5.dominoscore.audio.MusicController
+import io.github.khaledx5.dominoscore.domain.command.GameCommand
+import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
 import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
-import io.github.khaledx5.dominoscore.domain.messages.MessageTrigger
-import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
 import io.github.khaledx5.dominoscore.domain.model.Outcome
 import io.github.khaledx5.dominoscore.domain.model.PlayerId
 import io.github.khaledx5.dominoscore.domain.model.PlayerNameError
@@ -58,7 +58,7 @@ class GameViewModel @Inject constructor(
     private val endRound: EndRoundUseCase,
     private val endGameWith: ConfirmWinnerUseCase,
     private val renamePlayer: RenamePlayerUseCase,
-    private val trashTalk: RankingMessageEngine,
+    private val commands: GameCommandRunner,
     private val music: MusicController,
 ) : ViewModel() {
 
@@ -161,7 +161,7 @@ class GameViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            when (val result = trashTalk.react(MessageTrigger.TARGET_CHANGE) { changeTarget(newTarget) }) {
+            when (val result = commands.run(GameCommand.ChangeTarget) { changeTarget(newTarget) }) {
                 is Outcome.Success -> targetEdit.value = null
 
                 is Outcome.Failure -> when (val error = result.error) {
@@ -228,7 +228,7 @@ class GameViewModel @Inject constructor(
     private fun endCurrentRound() {
         if (endRoundJob?.isActive == true) return
         endRoundJob = viewModelScope.launch {
-            val result = trashTalk.react(MessageTrigger.ROUND_END) { endRound() }
+            val result = commands.run(GameCommand.EndRound) { endRound() }
             if (result is Outcome.Success) endedRound.value = result.value
         }
     }
@@ -277,7 +277,7 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             val player = PlayerId(entry.playerId)
             when (
-                val result = trashTalk.react(MessageTrigger.SCORE_CHANGE, player) {
+                val result = commands.run(GameCommand.Score(player, entry.type, amount)) {
                     recordScore(player, entry.type, amount)
                 }
             ) {

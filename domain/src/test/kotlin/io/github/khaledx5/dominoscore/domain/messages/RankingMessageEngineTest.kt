@@ -1,5 +1,7 @@
 package io.github.khaledx5.dominoscore.domain.messages
 
+import io.github.khaledx5.dominoscore.domain.command.GameCommand
+import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
 import io.github.khaledx5.dominoscore.domain.fixedClock
 import io.github.khaledx5.dominoscore.domain.messages.MessageCategory.ALL_PLAYERS_NEGATIVE
 import io.github.khaledx5.dominoscore.domain.messages.MessageCategory.FIRST_TIME_KING
@@ -37,8 +39,8 @@ class RankingMessageEngineTest {
             (1..4).map { RankingMessage("${category.name.lowercase()}_$it", category, "line $it") }
         },
     )
-    private val engine =
-        RankingMessageEngine(games, messages, { library }, RankingMessageSelector(Random(3)), fixedClock)
+    private val engine = RankingMessageEngine(messages, { library }, RankingMessageSelector(Random(3)), fixedClock)
+    private val commands = GameCommandRunner(games, setOf(engine))
 
     private val startGame = StartGameUseCase(games, fixedClock)
     private val recordScore = RecordScoreUseCase(games, fixedClock)
@@ -50,12 +52,13 @@ class RankingMessageEngineTest {
         return games.activeGame().players
     }
 
-    private suspend fun score(player: Player, points: Int) = engine.react(SCORE_CHANGE, player.id) {
+    private suspend fun score(player: Player, points: Int): Outcome<*, *> {
         val type = if (points >= 0) ScoreOperationType.ADD else ScoreOperationType.PENALTY
-        recordScore(player.id, type, kotlin.math.abs(points))
+        val amount = kotlin.math.abs(points)
+        return commands.run(GameCommand.Score(player.id, type, amount)) { recordScore(player.id, type, amount) }
     }
 
-    private suspend fun endTheRound() = engine.react(ROUND_END) { endRound() }
+    private suspend fun endTheRound() = commands.run(GameCommand.EndRound) { endRound() }
 
     private fun categoriesOf(trigger: MessageTrigger) = messages.all.filter { it.trigger == trigger }
         .associate { it.playerId to it.category }
@@ -90,7 +93,9 @@ class RankingMessageEngineTest {
     fun aRefusedCommandSavesNothingAndReturnsTheRefusal() = runTest {
         val (omar, _) = start("Omar", "Mona")
 
-        val result = engine.react(SCORE_CHANGE, omar.id) { recordScore(omar.id, ScoreOperationType.ADD, 0) }
+        val result = commands.run(GameCommand.Score(omar.id, ScoreOperationType.ADD, 0)) {
+            recordScore(omar.id, ScoreOperationType.ADD, 0)
+        }
 
         assertTrue(result is Outcome.Failure)
         assertEquals(emptyList<PlayerMessageRecord>(), messages.all)
@@ -141,7 +146,7 @@ class RankingMessageEngineTest {
         score(omar, 60)
         val before = messages.all.size
 
-        engine.react(TARGET_CHANGE) { changeTarget(50) }
+        commands.run(GameCommand.ChangeTarget) { changeTarget(50) }
 
         val added = messages.all.drop(before)
         assertEquals(listOf(omar.id to REACHED_TARGET), added.map { it.playerId to it.category })

@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import io.github.khaledx5.dominoscore.audio.MusicController
+import io.github.khaledx5.dominoscore.domain.command.GameCommandRunner
 import io.github.khaledx5.dominoscore.domain.history.ObserveMovesUseCase
 import io.github.khaledx5.dominoscore.domain.messages.MessageLibrary
 import io.github.khaledx5.dominoscore.domain.messages.RankingMessageEngine
@@ -64,9 +65,14 @@ class GameFlowTest {
             EndRoundUseCase(games, testClock),
             ConfirmWinnerUseCase(games, testClock),
             RenamePlayerUseCase(games, testClock),
-            RankingMessageEngine(games, messages, {
-                MessageLibrary.EMPTY
-            }, RankingMessageSelector(Random(1)), testClock),
+            GameCommandRunner(
+                games,
+                setOf(
+                    RankingMessageEngine(messages, {
+                        MessageLibrary.EMPTY
+                    }, RankingMessageSelector(Random(1)), testClock),
+                ),
+            ),
             MusicController(
                 audio = RecordingAudio().manager,
                 settingsStore = FakeMusicSettingsStore(),
